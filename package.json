@@ -1,0 +1,14 @@
+{
+  "name": "monkey-chatter",
+  "version": "1.0.0",
+  "description": "An AST-walking interpreter of a C-like language written from scratch.",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "author": "Max Nikolenko",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^27.4.7"
+  }
+}
