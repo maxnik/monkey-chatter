@@ -25,6 +25,8 @@ class Lexer {
     next_token() {
         let token = null
 
+        this.skip_whitespace()
+
         switch (this.ch) {       
             case '=':
                 token = new Token (token_types.ASSIGN, this.ch)
@@ -53,10 +55,65 @@ class Lexer {
             case null:
                 token = new Token (token_types.EOF, '')
                 break
+            default:
+                if (is_letter(this.ch)) {
+                    const ident = this.read_identifier()
+                    const type = lookup_identifier(ident)
+                    token = new Token (type, ident)
+                    return token
+                } else if (is_digit(this.ch)) {
+                    token = new Token (token_types.INT, this.read_number())
+                    return token
+                } else {
+                    token = new Token (token_types.ILLEGAL, this.ch)
+                }
         }
 
         this.read_char()
         return token
+    }
+
+    skip_whitespace() {
+        while ((/\s/).test(this.ch)) {
+            this.read_char()
+        }
+    }
+
+    read_identifier() {
+        const start = this.position
+        while (is_letter(this.ch)) {
+            this.read_char()
+        }
+        return this.input.slice(start, this.position)
+    }
+
+    read_number() {
+        const start = this.position
+        while (is_digit(this.ch)) {
+            this.read_char()
+        }
+        return this.input.slice(start, this.position)
+    }
+}
+
+function is_letter(char) {
+    return (/[a-z_]/i).test(char)
+}
+
+function is_digit(char) {
+    return (/[0-9]/).test(char)
+}
+
+function lookup_identifier(ident) {
+    switch (ident) {
+        case 'fn':
+            return token_types.FUNCTION
+            break
+        case 'let':
+            return token_types.LET
+            break
+        default:
+            return token_types.IDENT
     }
 }
 

@@ -1,5 +1,10 @@
 module.exports = Object.freeze({
+    ILLEGAL: 'ILLEGAL',
     EOF: 'EOF',
+
+    // Identifiers + literals
+    IDENT: "IDENT", // add, foobar, x, y...
+    INT: "INT",  // 1343456
 
     // Operators
     ASSIGN: '=',
@@ -12,5 +17,9 @@ module.exports = Object.freeze({
     LPAREN: '(',
     RPAREN: ')',
     LBRACE: '{',
-    RBRACE: '}'
+    RBRACE: '}',
+
+    // Keywords
+    FUNCTION: "FUNCTION",
+    LET: "LET"
 })
