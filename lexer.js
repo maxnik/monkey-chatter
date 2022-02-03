@@ -29,10 +29,42 @@ class Lexer {
 
         switch (this.ch) {       
             case '=':
-                token = new Token (token_types.ASSIGN, this.ch)
+                if (this.peek_char() === '=') {
+                    const ch = this.ch
+                    this.read_char()
+                    const literal = ch + this.ch
+                    token = new Token (token_types.EQ, literal)
+                } else {
+                    token = new Token (token_types.ASSIGN, this.ch)    
+                }                
+                break
+            case '!':
+                if (this.peek_char() === '=') {
+                    const ch = this.ch
+                    this.read_char()
+                    const literal = ch + this.ch
+                    token = new Token (token_types.NOT_EQ, literal)
+                } else {
+                    token = new Token (token_types.BANG, this.ch)
+                }                
                 break
             case '+':
                 token = new Token (token_types.PLUS, this.ch)
+                break
+            case '-':
+                token = new Token (token_types.MINUS, this.ch)
+                break
+            case '*':
+                token = new Token (token_types.ASTERISK, this.ch)
+                break
+            case '/':
+                token = new Token (token_types.SLASH, this.ch)
+                break
+            case '<':
+                token = new Token (token_types.LT, this.ch)
+                break
+            case '>':
+                token = new Token (token_types.GT, this.ch)
                 break
             case ';':
                 token = new Token (token_types.SEMICOLON, this.ch)
@@ -94,6 +126,14 @@ class Lexer {
         }
         return this.input.slice(start, this.position)
     }
+
+    peek_char() {
+        if (this.read_position >= this.input.length) {
+            return null
+        } else {
+            return this.input[this.read_position]
+        }
+    }
 }
 
 function is_letter(char) {
@@ -104,16 +144,22 @@ function is_digit(char) {
     return (/[0-9]/).test(char)
 }
 
+const keywords = {
+    'fn': token_types.FUNCTION,
+    'let': token_types.LET,
+    'true': token_types.TRUE,
+    'false': token_types.FALSE,
+    'if': token_types.IF,
+    'else': token_types.ELSE,
+    'return': token_types.RETURN
+}
+
 function lookup_identifier(ident) {
-    switch (ident) {
-        case 'fn':
-            return token_types.FUNCTION
-            break
-        case 'let':
-            return token_types.LET
-            break
-        default:
-            return token_types.IDENT
+    const keyword = keywords[ident]
+    if (keyword) {
+        return keyword
+    } else {
+        return token_types.IDENT
     }
 }
 

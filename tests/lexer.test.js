@@ -10,6 +10,17 @@ test('get feedback about about the working state of the lexer', () => {
     };
 
     let result = add(five, ten);
+    !-/*5;
+    5 < 10 > 5;
+
+    if (5 < 10) {
+        return true;
+    } else {
+        return false;
+    }
+
+    10 == 10;
+    10 != 9;
     `
 
     const expected_results = [
@@ -40,8 +51,8 @@ test('get feedback about about the working state of the lexer', () => {
         [token_types.IDENT, 'y'],
         [token_types.SEMICOLON, ';'],
         [token_types.RBRACE, '}'],
-        [token_types.SEMICOLON, ';'],
-        
+        [token_types.SEMICOLON, ';'],   
+
         [token_types.LET, 'let'],
         [token_types.IDENT, 'result'],
         [token_types.ASSIGN, '='],
@@ -51,6 +62,48 @@ test('get feedback about about the working state of the lexer', () => {
         [token_types.COMMA, ','],
         [token_types.IDENT, 'ten'],    
         [token_types.RPAREN, ')'],
+        [token_types.SEMICOLON, ';'],
+
+        [token_types.BANG, '!'],
+        [token_types.MINUS, '-'],
+        [token_types.SLASH, '/'],
+        [token_types.ASTERISK, '*'],
+        [token_types.INT, '5'],
+        [token_types.SEMICOLON, ';'],
+
+        [token_types.INT, '5'],
+        [token_types.LT, '<'],
+        [token_types.INT, '10'],
+        [token_types.GT, '>'],
+        [token_types.INT, '5'],
+        [token_types.SEMICOLON, ';'],
+
+        [token_types.IF, 'if'],
+        [token_types.LPAREN, '('],
+        [token_types.INT, '5'],
+        [token_types.LT, '<'],
+        [token_types.INT, '10'],
+        [token_types.RPAREN, ')'],
+        [token_types.LBRACE, '{'],
+        [token_types.RETURN, 'return'],
+        [token_types.TRUE, 'true'],
+        [token_types.SEMICOLON, ';'],
+        [token_types.RBRACE, '}'],
+        [token_types.ELSE, 'else'],
+        [token_types.LBRACE, '{'],
+        [token_types.RETURN, 'return'],
+        [token_types.FALSE, 'false'],
+        [token_types.SEMICOLON, ';'],
+        [token_types.RBRACE, '}'],
+
+        [token_types.INT, '10'],
+        [token_types.EQ, '=='],
+        [token_types.INT, '10'],
+        [token_types.SEMICOLON, ';'],
+
+        [token_types.INT, '10'],
+        [token_types.NOT_EQ, '!='],
+        [token_types.INT, '9'],
         [token_types.SEMICOLON, ';'],
         [token_types.EOF, '']
     ]

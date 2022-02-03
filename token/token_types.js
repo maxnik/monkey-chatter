@@ -9,6 +9,16 @@ module.exports = Object.freeze({
     // Operators
     ASSIGN: '=',
     PLUS: '+',
+    MINUS: '-',
+    BANG: '!',
+    ASTERISK: '*',
+    SLASH: '/',
+
+    LT: '<',
+    GT: '>',
+
+    EQ: '==',
+    NOT_EQ: '!=',
 
     // Delimiters
     COMMA: ',',
@@ -21,5 +31,10 @@ module.exports = Object.freeze({
 
     // Keywords
     FUNCTION: "FUNCTION",
-    LET: "LET"
+    LET: "LET",
+    TRUE: 'TRUE',
+    FALSE: 'FALSE',
+    IF: 'IF',
+    ELSE: 'ELSE',
+    RETURN: 'RETURN'
 })
