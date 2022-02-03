@@ -117,3 +117,11 @@ test('get feedback about about the working state of the lexer', () => {
         expect(next_token.literal).toBe(expected[1])
     }
 })
+
+test('works for a single identifier without whitespace after it', () => {
+    const lexer = new Lexer('let')
+    const token = lexer.next_token()
+
+    expect(token.type).toBe(token_types.LET)
+    expect(token.literal).toBe('let')
+})

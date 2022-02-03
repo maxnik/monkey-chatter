@@ -137,7 +137,8 @@ class Lexer {
 }
 
 function is_letter(char) {
-    return (/[a-z_]/i).test(char)
+    // regex.test() coerces its argument to string, so null becomes 'null' and this returns true
+    return (/[a-z_]/i).test(char || '')
 }
 
 function is_digit(char) {
