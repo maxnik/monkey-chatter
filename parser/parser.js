@@ -1,4 +1,4 @@
-const { Program, LetStatement, Identifier } = require('../ast/ast')
+const { Program, LetStatement, Identifier, ReturnStatement} = require('../ast/ast')
 const token_types = require('../token/token_types')
 
 class Parser {
@@ -38,6 +38,9 @@ class Parser {
 			case token_types.LET:
 				return this.parse_let_statement()
 				break
+			case token_types.RETURN:
+				return this.parse_return_statement()
+				break
 			default:
 				return null
 		}
@@ -55,6 +58,19 @@ class Parser {
 		if (! this.expect_peek(token_types.ASSIGN)) {
 			return null
 		}
+
+		while (this.cur_token.type !== token_types.SEMICOLON) {
+			// We're skipping the expressions until we encounter a semicolon
+			this.next_token()
+		}
+
+		return stmt
+	}
+
+	parse_return_statement() {
+		const stmt = new ReturnStatement (this.cur_token)
+
+		this.next_token()
 
 		while (this.cur_token.type !== token_types.SEMICOLON) {
 			// We're skipping the expressions until we encounter a semicolon

@@ -46,8 +46,23 @@ class Identifier {
 	}
 }
 
+class ReturnStatement {
+	constructor(token) {
+		this.token = token
+	}
+
+	statement_node() {
+
+	}
+
+	token_literal() {
+		return this.token.literal
+	}
+}
+
 module.exports = {
 	Program,
 	LetStatement,
-	Identifier
+	Identifier,
+	ReturnStatement
 }
