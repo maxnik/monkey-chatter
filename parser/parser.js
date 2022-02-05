@@ -2,6 +2,7 @@ const { Program, LetStatement, Identifier } = require('../ast/ast')
 const token_types = require('../token/token_types')
 
 class Parser {
+	errors = []
 
 	constructor(lexer) {
 		this.l = lexer
@@ -68,8 +69,15 @@ class Parser {
 			this.next_token()
 			return true
 		} else {
+			this.peek_error(token_type)
 			return false
 		}
+	}
+
+	peek_error(expected) {
+		const actual = this.peek_token.type
+		const msg = `expected next token to be ${expected}, got ${actual} instead`
+		this.errors.push(msg)
 	}
 }
 
