@@ -10,14 +10,18 @@ class Program {
 			return ''
 		}
 	}
+
+	toString() {
+		return this.statements.map(s => s.toString()).join('')
+	}
 }
 
 class LetStatement {
 	// value - an instance of Expression
 
-	constructor(token) {
+	constructor(token, name) {
 		this.token = token
-		this.name = null // an instance of Identifier
+		this.name = name // an instance of Identifier
 	}
 
 	statement_node() {
@@ -28,11 +32,18 @@ class LetStatement {
 		// part of the Node interface, returns debug information
 		return this.token.literal
 	}
+
+	toString() {
+		let s = `${this.token.literal} ${this.name.toString()} = `
+		if (this.value) {
+			s += this.value.toString()
+		}
+		s += ';'
+		return s
+	}
 }
 
 class Identifier {
-	// value - string
-
 	constructor(token) {
 		this.token = token // the token_types.IDENT token
 	}
@@ -43,6 +54,10 @@ class Identifier {
 
 	token_literal() {
 		return this.token.literal
+	}
+
+	toString() {
+		return this.value
 	}
 }
 
@@ -57,6 +72,36 @@ class ReturnStatement {
 
 	token_literal() {
 		return this.token.literal
+	}
+
+	toString() {
+		let s = `${this.token.literal} `
+		if (this.return_value) {
+			s += this.return_value.toString()
+		}
+		s += ';'
+		return s
+	}
+}
+
+class ExpressionStatement {
+	constructor(token) {
+		this.token = token
+	}
+
+	statement_node() {
+
+	}
+
+	token_literal() {
+		return this.token.literal
+	}
+
+	toString() {
+		if (this.expression) {
+			return this.expression.toString()
+		}
+		return ''
 	}
 }
 
