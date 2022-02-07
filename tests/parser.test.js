@@ -1,5 +1,6 @@
 const Lexer = require('../lexer')
-const { LetStatement, ReturnStatement, ExpressionStatement, Identifier } = require('../ast/ast')
+const { LetStatement, ReturnStatement, ExpressionStatement, 
+	Identifier, IntegerLiteral } = require('../ast/ast')
 const Parser = require('../parser/parser')
 
 test('let statements', () => {
@@ -77,6 +78,21 @@ test('identifier expression', () => {
 	expect(ident).toBeInstanceOf(Identifier)
 	expect(ident.value).toBe('foobar')
 	expect(ident.token_literal()).toBe('foobar')
+})
+
+test('integer literal expression', () => {
+	const input = '5;'
+	const p = new Parser (new Lexer (input))
+	const program = p.parse_program()
+
+	check_parser_errors(p)
+	expect(program.statements.length).toBe(1)
+	
+	const stmt = program.statements[0]
+	expect(stmt).toBeInstanceOf(ExpressionStatement)
+	expect(stmt.expression).toBeInstanceOf(IntegerLiteral)
+	expect(stmt.expression.value).toBe(5)
+	expect(stmt.expression.token_literal()).toBe('5')	
 })
 
 function check_parser_errors(parser) {

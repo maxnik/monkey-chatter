@@ -1,4 +1,5 @@
-const { Program, LetStatement, Identifier, ReturnStatement, ExpressionStatement } = require('../ast/ast')
+const { Program, LetStatement, Identifier, 
+	ReturnStatement, ExpressionStatement, IntegerLiteral } = require('../ast/ast')
 const token_types = require('../token/token_types')
 
 const precedences = Object.freeze({
@@ -23,6 +24,7 @@ class Parser {
 		this.next_token()
 
 		this.prefix_parse_fns[token_types.IDENT] = parse_identifier
+		this.prefix_parse_fns[token_types.INT] = parse_integer_literal
 	}
 
 	next_token() {
@@ -135,5 +137,18 @@ class Parser {
 const parse_identifier = (parser) => {
 	return new Identifier (parser.cur_token, parser.cur_token.literal)
 }
+
+const parse_integer_literal = (parser) => {
+		const lit = new IntegerLiteral (parser.cur_token)
+
+		const value = parseInt(parser.cur_token.literal)
+		if (typeof(value) != 'number') {
+			parser.errors.push(`could not parse ${parser.cur_token.literal} as integer`)
+			return null
+		}
+
+		lit.value = value
+		return lit
+	}
 
 module.exports = Parser

@@ -108,10 +108,27 @@ class ExpressionStatement {
 	}
 }
 
+class IntegerLiteral {
+	value = null
+
+	constructor(token) {
+		this.token = token
+	}
+
+	token_literal() {
+		return this.token.literal
+	}
+
+	toString() {
+		return this.token.literal
+	}
+}
+
 module.exports = {
 	Program,
 	LetStatement,
 	Identifier,
 	ReturnStatement,
-	ExpressionStatement
+	ExpressionStatement,
+	IntegerLiteral
 }
