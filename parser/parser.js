@@ -1,8 +1,19 @@
-const { Program, LetStatement, Identifier, ReturnStatement} = require('../ast/ast')
+const { Program, LetStatement, Identifier, ReturnStatement, ExpressionStatement } = require('../ast/ast')
 const token_types = require('../token/token_types')
+
+const precedences = Object.freeze({
+	LOWEST: 1,
+	EQUALS: 2,      // ==
+	LESSGREATER: 3, // > or <
+	SUM: 4,         // +
+	PRODUCT: 5,     // *
+	PREFIX: 6,      // -X or !X
+	CALL: 7         // myFunction(X)
+})
 
 class Parser {
 	errors = []
+	prefix_parse_fns = {}
 
 	constructor(lexer) {
 		this.l = lexer
@@ -10,6 +21,8 @@ class Parser {
 		// Read two tokens, so cur_token and peek_token are both set
 		this.next_token()
 		this.next_token()
+
+		this.prefix_parse_fns[token_types.IDENT] = parse_identifier
 	}
 
 	next_token() {
@@ -42,7 +55,7 @@ class Parser {
 				return this.parse_return_statement()
 				break
 			default:
-				return null
+				return this.parse_expression_statement()
 		}
 	}
 
@@ -53,7 +66,7 @@ class Parser {
 			return null
 		}
 
-		stmt.name = new Identifier (this.cur_token)
+		stmt.name = new Identifier (this.cur_token, null)
 
 		if (! this.expect_peek(token_types.ASSIGN)) {
 			return null
@@ -80,6 +93,28 @@ class Parser {
 		return stmt
 	}
 
+	parse_expression_statement() {
+		const stmt = new ExpressionStatement (this.cur_token)
+
+		stmt.expression = this.parse_expression(precedences.LOWEST)
+
+		if (this.peek_token.type === token_types.SEMICOLON) {
+			this.next_token()
+		}
+
+		return stmt
+	}
+
+	parse_expression(precedence) {
+		const prefix = this.prefix_parse_fns[this.cur_token.type]
+		if (! prefix) {
+			return null
+		}
+		const left_expression = prefix(this)
+
+		return left_expression
+	}
+
 	expect_peek(token_type) {
 		if (this.peek_token.type === token_type) {
 			this.next_token()
@@ -95,6 +130,10 @@ class Parser {
 		const msg = `expected next token to be ${expected}, got ${actual} instead`
 		this.errors.push(msg)
 	}
+}
+
+const parse_identifier = (parser) => {
+	return new Identifier (parser.cur_token, parser.cur_token.literal)
 }
 
 module.exports = Parser

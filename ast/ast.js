@@ -44,8 +44,9 @@ class LetStatement {
 }
 
 class Identifier {
-	constructor(token) {
+	constructor(token, value) {
 		this.token = token // the token_types.IDENT token
+		this.value = value
 	}
 
 	expression_node() {
@@ -85,6 +86,8 @@ class ReturnStatement {
 }
 
 class ExpressionStatement {
+	expression = null
+
 	constructor(token) {
 		this.token = token
 	}
@@ -109,5 +112,6 @@ module.exports = {
 	Program,
 	LetStatement,
 	Identifier,
-	ReturnStatement
+	ReturnStatement,
+	ExpressionStatement
 }

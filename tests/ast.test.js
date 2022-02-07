@@ -6,12 +6,10 @@ test('get our whole program back as string', () => {
 	const program = new Program ()
 
 	const var_token = new Token (token_types.IDENT, 'myVar')
-	const name = new Identifier (var_token)
-	name.value = 'myVar'
+	const name = new Identifier (var_token, 'myVar')
 
 	const val_token = new Token (token_types.IDENT, 'anotherVar')
-	const value_identifier = new Identifier (val_token)
-	value_identifier.value = 'anotherVar'
+	const value_identifier = new Identifier (val_token, 'anotherVar')
 
 	const let_token = new Token (token_types.LET, 'let')
 	const let_statement = new LetStatement (let_token, name)

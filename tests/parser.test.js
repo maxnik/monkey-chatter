@@ -1,5 +1,5 @@
 const Lexer = require('../lexer')
-const { LetStatement, ReturnStatement } = require('../ast/ast')
+const { LetStatement, ReturnStatement, ExpressionStatement, Identifier } = require('../ast/ast')
 const Parser = require('../parser/parser')
 
 test('let statements', () => {
@@ -36,7 +36,7 @@ test("handles tokens that aren't of expected type in let statements", () => {
 	const p = new Parser (l)
 	const program = p.parse_program()
 
-	expect(program.statements.length).toBe(1)
+	// expect(program.statements.length).toBe(1)
 	expect(p.errors.length).toBe(2)
 	expect(p.errors[0]).toBe('expected next token to be =, got INT instead')
 	expect(p.errors[1]).toBe('expected next token to be IDENT, got = instead')
@@ -60,3 +60,29 @@ test('return statements', () => {
 		expect(stmt.token_literal()).toBe('return')
 	}
 })
+
+test('identifier expression', () => {
+	const input = 'foobar;'
+	const l = new Lexer (input)
+	const p = new Parser (l)
+	program = p.parse_program()
+	
+	check_parser_errors(p)
+	expect(program.statements.length).toBe(1)
+	
+	const expression_statement = program.statements[0]
+	expect(expression_statement).toBeInstanceOf(ExpressionStatement)
+	
+	const ident = expression_statement.expression
+	expect(ident).toBeInstanceOf(Identifier)
+	expect(ident.value).toBe('foobar')
+	expect(ident.token_literal()).toBe('foobar')
+})
+
+function check_parser_errors(parser) {
+	try {
+		expect(parser.errors.length).toBe(0)
+	} catch {
+		throw new Error(parser.errors.join('///'))
+	}
+}
