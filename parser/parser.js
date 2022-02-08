@@ -1,5 +1,6 @@
 const { Program, LetStatement, Identifier, 
-	ReturnStatement, ExpressionStatement, IntegerLiteral } = require('../ast/ast')
+	ReturnStatement, ExpressionStatement, IntegerLiteral,
+	PrefixExpression } = require('../ast/ast')
 const token_types = require('../token/token_types')
 
 const precedences = Object.freeze({
@@ -25,6 +26,8 @@ class Parser {
 
 		this.prefix_parse_fns[token_types.IDENT] = parse_identifier
 		this.prefix_parse_fns[token_types.INT] = parse_integer_literal
+		this.prefix_parse_fns[token_types.BANG] = parse_prefix_expression
+		this.prefix_parse_fns[token_types.MINUS] = parse_prefix_expression
 	}
 
 	next_token() {
@@ -110,6 +113,7 @@ class Parser {
 	parse_expression(precedence) {
 		const prefix = this.prefix_parse_fns[this.cur_token.type]
 		if (! prefix) {
+			this.errors.push(`no prefix parse function for ${this.cur_token.type} found`)
 			return null
 		}
 		const left_expression = prefix(this)
@@ -149,6 +153,16 @@ const parse_integer_literal = (parser) => {
 
 		lit.value = value
 		return lit
-	}
+}
+
+const parse_prefix_expression = (parser) => {
+	const expression = new PrefixExpression (
+		parser.cur_token, parser.cur_token.literal)
+
+	parser.next_token()
+	expression.right = parser.parse_expression(precedences.PREFIX)
+
+	return expression
+}
 
 module.exports = Parser

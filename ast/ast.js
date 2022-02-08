@@ -124,11 +124,29 @@ class IntegerLiteral {
 	}
 }
 
+class PrefixExpression {
+	right = null 
+
+	constructor(token, operator) {
+		this.token = token
+		this.operator = operator
+	}
+
+	token_literal() {
+		return this.token.literal
+	}
+
+	toString() {
+		return `(${this.operator}${this.right.toString()})`
+	}
+}
+
 module.exports = {
 	Program,
 	LetStatement,
 	Identifier,
 	ReturnStatement,
 	ExpressionStatement,
-	IntegerLiteral
+	IntegerLiteral,
+	PrefixExpression
 }

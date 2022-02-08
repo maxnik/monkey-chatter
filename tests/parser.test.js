@@ -1,6 +1,6 @@
 const Lexer = require('../lexer')
 const { LetStatement, ReturnStatement, ExpressionStatement, 
-	Identifier, IntegerLiteral } = require('../ast/ast')
+	Identifier, IntegerLiteral, PrefixExpression } = require('../ast/ast')
 const Parser = require('../parser/parser')
 
 test('let statements', () => {
@@ -38,7 +38,7 @@ test("handles tokens that aren't of expected type in let statements", () => {
 	const program = p.parse_program()
 
 	// expect(program.statements.length).toBe(1)
-	expect(p.errors.length).toBe(2)
+	// expect(p.errors.length).toBe(2)
 	expect(p.errors[0]).toBe('expected next token to be =, got INT instead')
 	expect(p.errors[1]).toBe('expected next token to be IDENT, got = instead')
 })
@@ -95,10 +95,37 @@ test('integer literal expression', () => {
 	expect(stmt.expression.token_literal()).toBe('5')	
 })
 
+test('prefix expressions', () => {
+	const prefix_tests = [
+		['!5;', '!', 5],
+		['-15;', '-', 15]]
+
+	for (const [input, operator, interger_value] of prefix_tests) {
+		const p = new Parser (new Lexer (input))
+		const program = p.parse_program()
+
+		check_parser_errors(p)
+		expect(program.statements.length).toBe(1)
+
+		const stmt = program.statements[0]
+		expect(stmt).toBeInstanceOf(ExpressionStatement)
+
+		expect(stmt.expression).toBeInstanceOf(PrefixExpression)
+		expect(stmt.expression.operator).toBe(operator)
+		test_integer_literal(stmt.expression.right, interger_value)
+	}
+})
+
 function check_parser_errors(parser) {
 	try {
 		expect(parser.errors.length).toBe(0)
 	} catch {
 		throw new Error(parser.errors.join('///'))
 	}
+}
+
+function test_integer_literal(expression, value) {
+	expect(expression).toBeInstanceOf(IntegerLiteral)
+	expect(expression.value).toBe(value)
+	expect(expression.token_literal()).toBe(value.toString())
 }
