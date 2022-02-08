@@ -1,6 +1,6 @@
 const { Program, LetStatement, Identifier, 
 	ReturnStatement, ExpressionStatement, IntegerLiteral,
-	PrefixExpression } = require('../ast/ast')
+	PrefixExpression, InfixExpression } = require('../ast/ast')
 const token_types = require('../token/token_types')
 
 const precedences = Object.freeze({
@@ -13,9 +13,22 @@ const precedences = Object.freeze({
 	CALL: 7         // myFunction(X)
 })
 
+const token_p = {}
+token_p[token_types.EQ] = precedences.EQUALS
+token_p[token_types.NOT_EQ] = precedences.EQUALS
+token_p[token_types.NOT_EQ] = precedences.EQUALS
+token_p[token_types.LT] = precedences.LESSGREATER
+token_p[token_types.GT] = precedences.LESSGREATER
+token_p[token_types.PLUS] = precedences.SUM
+token_p[token_types.MINUS] = precedences.SUM
+token_p[token_types.SLASH] = precedences.PRODUCT
+token_p[token_types.ASTERISK] = precedences.PRODUCT
+const token_precedences = Object.freeze(token_p)
+
 class Parser {
 	errors = []
 	prefix_parse_fns = {}
+	infix_parse_fns = {}
 
 	constructor(lexer) {
 		this.l = lexer
@@ -28,6 +41,15 @@ class Parser {
 		this.prefix_parse_fns[token_types.INT] = parse_integer_literal
 		this.prefix_parse_fns[token_types.BANG] = parse_prefix_expression
 		this.prefix_parse_fns[token_types.MINUS] = parse_prefix_expression
+
+		this.infix_parse_fns[token_types.PLUS] = parse_infix_expression
+		this.infix_parse_fns[token_types.MINUS] = parse_infix_expression
+		this.infix_parse_fns[token_types.SLASH] = parse_infix_expression
+		this.infix_parse_fns[token_types.ASTERISK] = parse_infix_expression
+		this.infix_parse_fns[token_types.EQ] = parse_infix_expression
+		this.infix_parse_fns[token_types.NOT_EQ] = parse_infix_expression
+		this.infix_parse_fns[token_types.LT] = parse_infix_expression
+		this.infix_parse_fns[token_types.GT] = parse_infix_expression
 	}
 
 	next_token() {
@@ -116,7 +138,19 @@ class Parser {
 			this.errors.push(`no prefix parse function for ${this.cur_token.type} found`)
 			return null
 		}
-		const left_expression = prefix(this)
+		
+		let left_expression = prefix(this)
+
+		while (this.peek_token.type !== token_types.SEMICOLON && precedence < this.peek_precedence()) {
+			const infix = this.infix_parse_fns[this.peek_token.type]
+			if (! infix) {
+				return left_expression
+			}
+
+			this.next_token()
+			left_expression = infix(this, left_expression)
+
+		}
 
 		return left_expression
 	}
@@ -135,6 +169,14 @@ class Parser {
 		const actual = this.peek_token.type
 		const msg = `expected next token to be ${expected}, got ${actual} instead`
 		this.errors.push(msg)
+	}
+
+	cur_precedence() {
+		return token_precedences[this.cur_token.type] || precedences.LOWEST
+	}
+
+	peek_precedence() {
+		return token_precedences[this.peek_token.type] || precedences.LOWEST
 	}
 }
 
@@ -161,6 +203,17 @@ const parse_prefix_expression = (parser) => {
 
 	parser.next_token()
 	expression.right = parser.parse_expression(precedences.PREFIX)
+
+	return expression
+}
+
+const parse_infix_expression = (parser, left) => {
+	const expression = new InfixExpression (
+		parser.cur_token, parser.cur_token.literal, left)
+
+	const precedence = parser.cur_precedence()
+	parser.next_token()
+	expression.right = parser.parse_expression(precedence)
 
 	return expression
 }

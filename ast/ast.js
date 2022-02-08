@@ -141,6 +141,21 @@ class PrefixExpression {
 	}
 }
 
+class InfixExpression {
+	left = null
+	right = null
+
+	constructor(token, operator, left) {
+		this.token = token
+		this.operator = operator
+		this.left = left
+	}
+
+	toString() {
+		return `(${this.left.toString()} ${this.operator} ${this.right.toString()})`
+	}
+}
+
 module.exports = {
 	Program,
 	LetStatement,
@@ -148,5 +163,6 @@ module.exports = {
 	ReturnStatement,
 	ExpressionStatement,
 	IntegerLiteral,
-	PrefixExpression
+	PrefixExpression,
+	InfixExpression
 }

@@ -1,6 +1,7 @@
 const Lexer = require('../lexer')
 const { LetStatement, ReturnStatement, ExpressionStatement, 
-	Identifier, IntegerLiteral, PrefixExpression } = require('../ast/ast')
+	Identifier, IntegerLiteral, PrefixExpression,
+	InfixExpression } = require('../ast/ast')
 const Parser = require('../parser/parser')
 
 test('let statements', () => {
@@ -114,6 +115,36 @@ test('prefix expressions', () => {
 		expect(stmt.expression.operator).toBe(operator)
 		test_integer_literal(stmt.expression.right, interger_value)
 	}
+})
+
+test('infix expressions', () => {
+	const infix_tests = [
+	['5 + 6;', 5, '+', 6],
+	['5 - 6;', 5, '-', 6],
+	['5 * 6;', 5, '*', 6],
+	['5 / 6;', 5, '/', 6],
+	['5 > 6;', 5, '>', 6],
+	['5 < 6;', 5, '<', 6],
+	['5 == 6;', 5, '==', 6],
+	['5 != 6;', 5, '!=', 6]]
+	for (const [input, left_value, operator, right_value] of infix_tests) {
+		const p = new Parser (new Lexer (input))
+		const program = p.parse_program()
+
+		check_parser_errors(p)
+		expect(program.statements.length).toBe(1)
+
+		const stmt = program.statements[0]
+		expect(stmt).toBeInstanceOf(ExpressionStatement)
+
+		const exp = stmt.expression
+		expect(exp).toBeInstanceOf(InfixExpression)
+		
+		test_integer_literal(exp.left, left_value)
+		expect(exp.operator).toBe(operator)
+		test_integer_literal(exp.right, right_value)
+	}
+
 })
 
 function check_parser_errors(parser) {
