@@ -147,6 +147,30 @@ test('infix expressions', () => {
 
 })
 
+test('operator precedence parsing', () => {
+	const test_cases = [
+	['-a * b',                     '((-a) * b)'],
+	['!-a',                        '(!(-a))',],
+	['a + b + c',                  '((a + b) + c)'],
+	['a + b - c',                  '((a + b) - c)'],
+	['a * b * c',                  '((a * b) * c)'],
+	['a * b / c',                  '((a * b) / c)'],
+	['a + b / c',                  '(a + (b / c))'],
+	['a + b * c + d / e - f',      '(((a + (b * c)) + (d / e)) - f)'],
+	['3 + 4; -5 * 6',              '(3 + 4)((-5) * 6)'],
+	['5 > 4 == 3 < 6',             '((5 > 4) == (3 < 6))'],
+	['5 < 4 != 3 > 7',             '((5 < 4) != (3 > 7))'],
+	['3 + 4 * 5 == 6 * 7 + 8 * 9', '((3 + (4 * 5)) == ((6 * 7) + (8 * 9)))']]
+
+	for (const [input, expected] of test_cases) {
+		const p = new Parser (new Lexer (input))
+		const program = p.parse_program()
+
+		check_parser_errors(p)
+		expect(program.toString()).toBe(expected)
+	}
+})
+
 function check_parser_errors(parser) {
 	try {
 		expect(parser.errors.length).toBe(0)
