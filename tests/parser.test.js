@@ -1,7 +1,7 @@
 const Lexer = require('../lexer')
 const { LetStatement, ReturnStatement, ExpressionStatement, 
-	Identifier, IntegerLiteral, PrefixExpression,
-	InfixExpression } = require('../ast/ast')
+	Identifier, IntegerLiteral, BooleanLiteral,
+	PrefixExpression, InfixExpression } = require('../ast/ast')
 const Parser = require('../parser/parser')
 
 test('let statements', () => {
@@ -98,10 +98,14 @@ test('integer literal expression', () => {
 
 test('prefix expressions', () => {
 	const prefix_tests = [
-		['!5;', '!', 5],
-		['-15;', '-', 15]]
+		['!5;',      '!', 5],
+		['-15;',     '-', 15],
+		['!foobar;', '!', 'foobar'],
+		['-foobar;', '-', 'foobar'],
+		['!true;',   '!', true],
+		['!false;',  '!', false]]
 
-	for (const [input, operator, interger_value] of prefix_tests) {
+	for (const [input, operator, value] of prefix_tests) {
 		const p = new Parser (new Lexer (input))
 		const program = p.parse_program()
 
@@ -113,20 +117,23 @@ test('prefix expressions', () => {
 
 		expect(stmt.expression).toBeInstanceOf(PrefixExpression)
 		expect(stmt.expression.operator).toBe(operator)
-		test_integer_literal(stmt.expression.right, interger_value)
+		test_literal_expression(stmt.expression.right, value)
 	}
 })
 
 test('infix expressions', () => {
 	const infix_tests = [
-	['5 + 6;', 5, '+', 6],
-	['5 - 6;', 5, '-', 6],
-	['5 * 6;', 5, '*', 6],
-	['5 / 6;', 5, '/', 6],
-	['5 > 6;', 5, '>', 6],
-	['5 < 6;', 5, '<', 6],
-	['5 == 6;', 5, '==', 6],
-	['5 != 6;', 5, '!=', 6]]
+	['5 + 6;',        5, '+', 6],
+	['5 - 6;',        5, '-', 6],
+	['5 * 6;',        5, '*', 6],
+	['5 / 6;',        5, '/', 6],
+	['5 > 6;',        5, '>', 6],
+	['5 < 6;',        5, '<', 6],
+	['5 == 6;',       5, '==', 6],
+	['5 != 6;',       5, '!=', 6],
+	['true == true',  true, '==', true],
+	['true != false', true, '!=', false]]
+
 	for (const [input, left_value, operator, right_value] of infix_tests) {
 		const p = new Parser (new Lexer (input))
 		const program = p.parse_program()
@@ -140,9 +147,9 @@ test('infix expressions', () => {
 		const exp = stmt.expression
 		expect(exp).toBeInstanceOf(InfixExpression)
 		
-		test_integer_literal(exp.left, left_value)
+		test_literal_expression(exp.left, left_value)
 		expect(exp.operator).toBe(operator)
-		test_integer_literal(exp.right, right_value)
+		test_literal_expression(exp.right, right_value)
 	}
 
 })
@@ -160,7 +167,11 @@ test('operator precedence parsing', () => {
 	['3 + 4; -5 * 6',              '(3 + 4)((-5) * 6)'],
 	['5 > 4 == 3 < 6',             '((5 > 4) == (3 < 6))'],
 	['5 < 4 != 3 > 7',             '((5 < 4) != (3 > 7))'],
-	['3 + 4 * 5 == 6 * 7 + 8 * 9', '((3 + (4 * 5)) == ((6 * 7) + (8 * 9)))']]
+	['3 + 4 * 5 == 6 * 7 + 8 * 9', '((3 + (4 * 5)) == ((6 * 7) + (8 * 9)))'],
+	['true',                       'true'],
+	['false',                      'false'],
+	['3 > 5 == false',             '((3 > 5) == false)'],
+	['true == 3 < 5',              '(true == (3 < 5))']]
 
 	for (const [input, expected] of test_cases) {
 		const p = new Parser (new Lexer (input))
@@ -168,6 +179,24 @@ test('operator precedence parsing', () => {
 
 		check_parser_errors(p)
 		expect(program.toString()).toBe(expected)
+	}
+})
+
+test('boolean expression', () => {
+	const test_cases = [
+		['true;', true],
+		['false;', false]]
+
+	for (const [input, expected] of test_cases) {
+		const p = new Parser (new Lexer (input))
+		const program = p.parse_program()
+
+		check_parser_errors(p)
+		expect(program.statements.length).toBe(1)
+
+		const stmt = program.statements[0]
+		expect(stmt).toBeInstanceOf(ExpressionStatement)
+		test_boolean_literal(stmt.expression, expected)
 	}
 })
 
@@ -183,4 +212,36 @@ function test_integer_literal(expression, value) {
 	expect(expression).toBeInstanceOf(IntegerLiteral)
 	expect(expression.value).toBe(value)
 	expect(expression.token_literal()).toBe(value.toString())
+}
+
+function test_identifier(expression, value) {
+	expect(expression).toBeInstanceOf(Identifier)
+	expect(expression.value).toBe(value)
+	expect(expression.token_literal()).toBe(value)
+}
+
+function test_boolean_literal(exp, value) {
+	expect(exp).toBeInstanceOf(BooleanLiteral)
+	expect(exp.value).toBe(value)
+	expect(exp.token_literal()).toBe(value.toString())
+}
+
+function test_literal_expression(exp, expected) {
+	switch(typeof(expected)) {
+		case 'number':
+			test_integer_literal(exp, expected)
+			break
+		case 'boolean':
+			test_boolean_literal(exp, expected)
+			break
+		default:
+			test_identifier(exp, expected)
+	}
+}
+
+function test_infix_expression(exp, left, operator, right) {
+	expect(exp).toBeInstanceOf(InfixExpression)
+	test_literal_expression(exp.left, left)
+	expect(exp.operator).toBe(operator)
+	test_literal_expression(exp.right, right)
 }

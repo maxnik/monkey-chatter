@@ -1,6 +1,6 @@
 const { Program, LetStatement, Identifier, 
 	ReturnStatement, ExpressionStatement, IntegerLiteral,
-	PrefixExpression, InfixExpression } = require('../ast/ast')
+	BooleanLiteral, PrefixExpression, InfixExpression } = require('../ast/ast')
 const token_types = require('../token/token_types')
 
 const precedences = Object.freeze({
@@ -41,6 +41,8 @@ class Parser {
 		this.prefix_parse_fns[token_types.INT] = parse_integer_literal
 		this.prefix_parse_fns[token_types.BANG] = parse_prefix_expression
 		this.prefix_parse_fns[token_types.MINUS] = parse_prefix_expression
+		this.prefix_parse_fns[token_types.TRUE] = parse_boolean
+		this.prefix_parse_fns[token_types.FALSE] = parse_boolean
 
 		this.infix_parse_fns[token_types.PLUS] = parse_infix_expression
 		this.infix_parse_fns[token_types.MINUS] = parse_infix_expression
@@ -195,6 +197,11 @@ const parse_integer_literal = (parser) => {
 
 		lit.value = value
 		return lit
+}
+
+const parse_boolean = (parser) => {
+	const token = parser.cur_token
+	return new BooleanLiteral(token, token.type === token_types.TRUE)
 }
 
 const parse_prefix_expression = (parser) => {
