@@ -43,6 +43,7 @@ class Parser {
 		this.prefix_parse_fns[token_types.MINUS] = parse_prefix_expression
 		this.prefix_parse_fns[token_types.TRUE] = parse_boolean
 		this.prefix_parse_fns[token_types.FALSE] = parse_boolean
+		this.prefix_parse_fns[token_types.LPAREN] = parse_grouped_expression
 
 		this.infix_parse_fns[token_types.PLUS] = parse_infix_expression
 		this.infix_parse_fns[token_types.MINUS] = parse_infix_expression
@@ -223,6 +224,18 @@ const parse_infix_expression = (parser, left) => {
 	expression.right = parser.parse_expression(precedence)
 
 	return expression
+}
+
+const parse_grouped_expression = (parser) => {
+	parser.next_token()
+
+	const exp = parser.parse_expression(precedences.LOWEST)
+
+	if (! parser.expect_peek(token_types.RPAREN)) {
+		return null
+	}
+
+	return exp
 }
 
 module.exports = Parser

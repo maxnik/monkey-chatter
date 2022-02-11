@@ -171,7 +171,12 @@ test('operator precedence parsing', () => {
 	['true',                       'true'],
 	['false',                      'false'],
 	['3 > 5 == false',             '((3 > 5) == false)'],
-	['true == 3 < 5',              '(true == (3 < 5))']]
+	['true == 3 < 5',              '(true == (3 < 5))'],
+	['1 + (2 + 3) + 4',            '((1 + (2 + 3)) + 4)'],
+	['(5 + 5) * 2',                '((5 + 5) * 2)'],
+	['2 / (5 + 5)',                '(2 / (5 + 5))'],
+	['-(5 + 5)',                   '(-(5 + 5))'],
+	['!(true == true)',            '(!(true == true))']]
 
 	for (const [input, expected] of test_cases) {
 		const p = new Parser (new Lexer (input))
@@ -204,7 +209,7 @@ function check_parser_errors(parser) {
 	try {
 		expect(parser.errors.length).toBe(0)
 	} catch {
-		throw new Error(parser.errors.join('///'))
+		throw new Error(parser.errors.join('___'))
 	}
 }
 
