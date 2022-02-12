@@ -1,7 +1,7 @@
 const { Program, LetStatement, Identifier, 
 	ReturnStatement, ExpressionStatement, IntegerLiteral,
 	BooleanLiteral, PrefixExpression, InfixExpression,
-	IfExpression, BlockStatement } = require('../ast/ast')
+	IfExpression, BlockStatement, FunctionLiteral } = require('../ast/ast')
 const token_types = require('../token/token_types')
 
 const precedences = Object.freeze({
@@ -46,6 +46,7 @@ class Parser {
 		this.prefix_parse_fns[token_types.FALSE] = parse_boolean
 		this.prefix_parse_fns[token_types.LPAREN] = parse_grouped_expression
 		this.prefix_parse_fns[token_types.IF] = parse_if_expression
+		this.prefix_parse_fns[token_types.FUNCTION] = parse_function_literal
 
 		this.infix_parse_fns[token_types.PLUS] = parse_infix_expression
 		this.infix_parse_fns[token_types.MINUS] = parse_infix_expression
@@ -178,6 +179,34 @@ class Parser {
 		return block
 	}
 
+	parse_function_parameters() {
+		const identifiers = []
+
+		if (this.peek_token.type === token_types.RPAREN) {
+			this.next_token()
+			return identifiers
+		}
+
+		this.next_token()
+
+		let ident = new Identifier (this.cur_token, this.cur_token.literal)
+		identifiers.push(ident)
+
+		while (this.peek_token.type === token_types.COMMA) {
+			this.next_token()
+			this.next_token()
+
+			ident = new Identifier (this.cur_token, this.cur_token.literal)
+			identifiers.push(ident)
+		}
+
+		if (! this.expect_peek(token_types.RPAREN)) {
+			return null
+		}
+
+		return identifiers
+	}
+
 	expect_peek(token_type) {
 		if (this.peek_token.type === token_type) {
 			this.next_token()
@@ -291,6 +320,24 @@ const parse_if_expression = (parser) => {
 	}
 
 	return expression
+}
+
+const parse_function_literal = (parser) => {
+	const fn = new FunctionLiteral (parser.cur_token)
+
+	if (! parser.expect_peek(token_types.LPAREN)) {
+		return null
+	}
+
+	fn.parameters = parser.parse_function_parameters()
+
+	if (! parser.expect_peek(token_types.LBRACE)) {
+		return null
+	}
+
+	fn.body = parser.parse_block_statement()
+
+	return fn
 }
 
 module.exports = Parser

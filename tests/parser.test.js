@@ -1,7 +1,8 @@
 const Lexer = require('../lexer')
 const { LetStatement, ReturnStatement, ExpressionStatement, 
 	Identifier, IntegerLiteral, BooleanLiteral,
-	PrefixExpression, InfixExpression, IfExpression } = require('../ast/ast')
+	PrefixExpression, InfixExpression, IfExpression,
+	FunctionLiteral } = require('../ast/ast')
 const Parser = require('../parser/parser')
 
 test('let statements', () => {
@@ -249,11 +250,55 @@ test('if else expression', () => {
 	test_identifier(alternative.expression, 'a')
 })
 
+test('function literal', () => {
+	const input = 'fn(x, y) { x + y; }'
+	const p = new Parser (new Lexer (input))
+	const program = p.parse_program()
+
+	check_parser_errors(p)
+	expect(program.statements.length).toBe(1)
+
+	const stmt = program.statements[0]
+	expect(stmt).toBeInstanceOf(ExpressionStatement)
+
+	const fn = stmt.expression
+	expect(fn).toBeInstanceOf(FunctionLiteral)
+	
+	expect(fn.parameters.length).toBe(2)
+	test_literal_expression(fn.parameters[0], 'x')
+	test_literal_expression(fn.parameters[1], 'y')
+
+	expect(fn.body.statements.length).toBe(1)
+	const body_stmt = fn.body.statements[0]
+	expect(body_stmt).toBeInstanceOf(ExpressionStatement)
+	test_infix_expression(body_stmt.expression, 'x', '+', 'y')
+})
+
+test('function parameter parsing', () => {
+	const test_cases = [
+		['fn() {}',        []],
+		['fn(x) {}',       ['x']],
+		['fn(x, y, z) {}', ['x', 'y', 'z']]]
+
+	for (const [input, expected] of test_cases) {
+		const p = new Parser (new Lexer (input))
+		const program = p.parse_program()
+
+		check_parser_errors(p)
+		const fn = program.statements[0].expression
+
+		expect(fn.parameters.length).toBe(expected.length)
+		for (const [i, param] of expected.entries()) {
+			test_literal_expression(fn.parameters[i], param)
+		}
+	}
+})
+
 function check_parser_errors(parser) {
 	try {
 		expect(parser.errors.length).toBe(0)
 	} catch {
-		throw new Error(parser.errors.join('___'))
+		throw new Error(parser.errors.join('\n'))
 	}
 }
 

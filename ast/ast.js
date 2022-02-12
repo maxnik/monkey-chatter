@@ -208,6 +208,25 @@ class BlockStatement {
 	}
 }
 
+class FunctionLiteral {
+	parameters = null
+	body = null
+
+	constructor(token) {
+		this.token = token
+	}
+
+	token_literal() {
+		return this.token.literal
+	}
+
+	toString() {
+		const params = this.parameters.map(p => p.toString()).join(', ')
+
+		return `${this.token_literal()}(${params})${this.body.toString()}`
+	}
+}
+
 module.exports = {
 	Program,
 	LetStatement,
@@ -219,5 +238,6 @@ module.exports = {
 	PrefixExpression,
 	InfixExpression,
 	IfExpression,
-	BlockStatement
+	BlockStatement,
+	FunctionLiteral
 }
