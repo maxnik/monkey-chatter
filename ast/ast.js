@@ -172,6 +172,42 @@ class InfixExpression {
 	}
 }
 
+class IfExpression {
+	condition = null
+	consequence = null
+	alternative = null
+
+	constructor(token) {
+		this.token = token
+	}
+
+	token_literal() {
+		return this.token.literal
+	}
+
+	toString() {
+		const alternative = this.alternative ? `else ${this.alternative.toString()}` : ''
+
+		return `if ${this.condition.toString()} ${this.consequence.toString()} ${alternative}`
+	}
+}
+
+class BlockStatement {
+	statements = []
+
+	constructor(token) {
+		this.token = token // the { token
+	}
+
+	token_literal() {
+		return this.token.literal
+	}
+
+	toString() {
+		return this.statements.map(s => s.toString()).join('')
+	}
+}
+
 module.exports = {
 	Program,
 	LetStatement,
@@ -181,5 +217,7 @@ module.exports = {
 	IntegerLiteral,
 	BooleanLiteral,
 	PrefixExpression,
-	InfixExpression
+	InfixExpression,
+	IfExpression,
+	BlockStatement
 }

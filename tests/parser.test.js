@@ -1,7 +1,7 @@
 const Lexer = require('../lexer')
 const { LetStatement, ReturnStatement, ExpressionStatement, 
 	Identifier, IntegerLiteral, BooleanLiteral,
-	PrefixExpression, InfixExpression } = require('../ast/ast')
+	PrefixExpression, InfixExpression, IfExpression } = require('../ast/ast')
 const Parser = require('../parser/parser')
 
 test('let statements', () => {
@@ -203,6 +203,50 @@ test('boolean expression', () => {
 		expect(stmt).toBeInstanceOf(ExpressionStatement)
 		test_boolean_literal(stmt.expression, expected)
 	}
+})
+
+test('if expression', () => {
+	const input = 'if (x < y) { z }'
+	const p = new Parser (new Lexer (input))
+	const program = p.parse_program()
+
+	check_parser_errors(p)
+	expect(program.statements.length).toBe(1)
+
+	const stmt = program.statements[0]
+	expect(stmt).toBeInstanceOf(ExpressionStatement)
+
+	const exp = stmt.expression
+	expect(exp).toBeInstanceOf(IfExpression)
+	test_infix_expression(exp.condition, 'x', '<', 'y')
+	expect(exp.consequence.statements.length).toBe(1)
+
+	const consequence = exp.consequence.statements[0]
+	expect(consequence).toBeInstanceOf(ExpressionStatement)
+	test_identifier(consequence.expression, 'z')
+
+	expect(exp.alternative).toBeNull()
+})
+
+test('if else expression', () => {
+	const input = 'if (y == x) { z } else { a }'
+	const p = new Parser (new Lexer (input))
+	const program = p.parse_program()
+
+	check_parser_errors(p)
+	expect(program.statements.length).toBe(1)
+
+	const stmt = program.statements[0]
+	expect(stmt).toBeInstanceOf(ExpressionStatement)
+
+	const exp = stmt.expression
+	expect(exp).toBeInstanceOf(IfExpression)
+	test_infix_expression(exp.condition, 'y', '==', 'x')
+	expect(exp.alternative.statements.length).toBe(1)
+
+	const alternative = exp.alternative.statements[0]
+	expect(alternative).toBeInstanceOf(ExpressionStatement)
+	test_identifier(alternative.expression, 'a')
 })
 
 function check_parser_errors(parser) {

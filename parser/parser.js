@@ -1,6 +1,7 @@
 const { Program, LetStatement, Identifier, 
 	ReturnStatement, ExpressionStatement, IntegerLiteral,
-	BooleanLiteral, PrefixExpression, InfixExpression } = require('../ast/ast')
+	BooleanLiteral, PrefixExpression, InfixExpression,
+	IfExpression, BlockStatement } = require('../ast/ast')
 const token_types = require('../token/token_types')
 
 const precedences = Object.freeze({
@@ -44,6 +45,7 @@ class Parser {
 		this.prefix_parse_fns[token_types.TRUE] = parse_boolean
 		this.prefix_parse_fns[token_types.FALSE] = parse_boolean
 		this.prefix_parse_fns[token_types.LPAREN] = parse_grouped_expression
+		this.prefix_parse_fns[token_types.IF] = parse_if_expression
 
 		this.infix_parse_fns[token_types.PLUS] = parse_infix_expression
 		this.infix_parse_fns[token_types.MINUS] = parse_infix_expression
@@ -158,6 +160,24 @@ class Parser {
 		return left_expression
 	}
 
+	parse_block_statement() {
+		const block = new BlockStatement(this.cur_token)
+
+		this.next_token()
+
+		while (this.cur_token.type !== token_types.RBRACE 
+			&& this.cur_token.type !== token_types.EOF) {
+			
+			const stmt = this.parse_statement()
+			if (stmt) {
+				block.statements.push(stmt)
+			}
+			this.next_token()
+		}
+
+		return block
+	}
+
 	expect_peek(token_type) {
 		if (this.peek_token.type === token_type) {
 			this.next_token()
@@ -236,6 +256,41 @@ const parse_grouped_expression = (parser) => {
 	}
 
 	return exp
+}
+
+const parse_if_expression = (parser) => {
+	const expression = new IfExpression(parser.cur_token)
+
+	if (! parser.expect_peek(token_types.LPAREN)) {
+		return null
+	}
+
+	parser.next_token()
+	expression.condition = parser.parse_expression(precedences.LOWEST)
+
+	if (! parser.expect_peek(token_types.RPAREN)) {
+		return null
+	}
+
+	if (! parser.expect_peek(token_types.LBRACE)) {
+		return null
+	}
+
+	expression.consequence = parser.parse_block_statement()
+
+	if (parser.peek_token.type === token_types.ELSE) {
+		// not expect_peek because we allow an optional else block
+		// but don't add parser error is there is none
+		parser.next_token()
+
+		if (! parser.expect_peek(token_types.LBRACE)) {
+			return null
+		}
+
+		expression.alternative = parser.parse_block_statement()
+	}
+
+	return expression
 }
 
 module.exports = Parser
