@@ -227,6 +227,26 @@ class FunctionLiteral {
 	}
 }
 
+class CallExpression {
+	fn = null
+	arguments = null
+
+	constructor(token, fn) {
+		this.token = token
+		this.fn = fn
+	}
+
+	token_literal() {
+		return this.token.literal
+	}
+
+	toString() {
+		const args = this.arguments.map(a => a.toString()).join(', ')
+
+		return `${this.fn.toString()}(${args})`
+	}
+}
+
 module.exports = {
 	Program,
 	LetStatement,
@@ -239,5 +259,6 @@ module.exports = {
 	InfixExpression,
 	IfExpression,
 	BlockStatement,
-	FunctionLiteral
+	FunctionLiteral,
+	CallExpression
 }

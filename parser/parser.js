@@ -1,7 +1,8 @@
 const { Program, LetStatement, Identifier, 
 	ReturnStatement, ExpressionStatement, IntegerLiteral,
 	BooleanLiteral, PrefixExpression, InfixExpression,
-	IfExpression, BlockStatement, FunctionLiteral } = require('../ast/ast')
+	IfExpression, BlockStatement, FunctionLiteral,
+	CallExpression } = require('../ast/ast')
 const token_types = require('../token/token_types')
 
 const precedences = Object.freeze({
@@ -24,6 +25,7 @@ token_p[token_types.PLUS] = precedences.SUM
 token_p[token_types.MINUS] = precedences.SUM
 token_p[token_types.SLASH] = precedences.PRODUCT
 token_p[token_types.ASTERISK] = precedences.PRODUCT
+token_p[token_types.LPAREN] = precedences.CALL
 const token_precedences = Object.freeze(token_p)
 
 class Parser {
@@ -56,6 +58,7 @@ class Parser {
 		this.infix_parse_fns[token_types.NOT_EQ] = parse_infix_expression
 		this.infix_parse_fns[token_types.LT] = parse_infix_expression
 		this.infix_parse_fns[token_types.GT] = parse_infix_expression
+		this.infix_parse_fns[token_types.LPAREN] = parse_call_expression
 	}
 
 	next_token() {
@@ -207,6 +210,30 @@ class Parser {
 		return identifiers
 	}
 
+	parse_call_arguments() {
+		const args = []
+
+		if (this.peek_token.type === token_types.RPAREN) {
+			this.next_token()
+			return args
+		}
+
+		this.next_token()
+		args.push(this.parse_expression(precedences.LOWEST))
+
+		while (this.peek_token.type === token_types.COMMA) {
+			this.next_token()
+			this.next_token()
+			args.push(this.parse_expression(precedences.LOWEST))
+		}
+
+		if (! this.expect_peek(token_types.RPAREN)) {
+			return null
+		}
+
+		return args
+	}
+
 	expect_peek(token_type) {
 		if (this.peek_token.type === token_type) {
 			this.next_token()
@@ -338,6 +365,14 @@ const parse_function_literal = (parser) => {
 	fn.body = parser.parse_block_statement()
 
 	return fn
+}
+
+const parse_call_expression = (parser, fn) => {
+	const exp = new CallExpression (parser.cur_token, fn)
+
+	exp.arguments = parser.parse_call_arguments()
+
+	return exp
 }
 
 module.exports = Parser

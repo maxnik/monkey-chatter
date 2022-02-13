@@ -2,7 +2,7 @@ const Lexer = require('../lexer')
 const { LetStatement, ReturnStatement, ExpressionStatement, 
 	Identifier, IntegerLiteral, BooleanLiteral,
 	PrefixExpression, InfixExpression, IfExpression,
-	FunctionLiteral } = require('../ast/ast')
+	FunctionLiteral, CallExpression } = require('../ast/ast')
 const Parser = require('../parser/parser')
 
 test('let statements', () => {
@@ -177,7 +177,10 @@ test('operator precedence parsing', () => {
 	['(5 + 5) * 2',                '((5 + 5) * 2)'],
 	['2 / (5 + 5)',                '(2 / (5 + 5))'],
 	['-(5 + 5)',                   '(-(5 + 5))'],
-	['!(true == true)',            '(!(true == true))']]
+	['!(true == true)',            '(!(true == true))'],
+	['a + add(b * c) + d',         '((a + add((b * c))) + d)'],
+	['add(a + b + c * d / f + g)', 'add((((a + b) + ((c * d) / f)) + g))'],
+	['add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))', 'add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))']]
 
 	for (const [input, expected] of test_cases) {
 		const p = new Parser (new Lexer (input))
@@ -290,6 +293,50 @@ test('function parameter parsing', () => {
 		expect(fn.parameters.length).toBe(expected.length)
 		for (const [i, param] of expected.entries()) {
 			test_literal_expression(fn.parameters[i], param)
+		}
+	}
+})
+
+test('call expression', () => {
+	const input = 'add(1, 2 * 3, 4 + 5);'
+	const p = new Parser (new Lexer (input))
+	const program = p.parse_program()
+
+	check_parser_errors(p)
+	expect(program.statements.length).toBe(1)
+
+	const stmt = program.statements[0]
+	expect(stmt).toBeInstanceOf(ExpressionStatement)
+
+	const exp = stmt.expression
+	expect(exp).toBeInstanceOf(CallExpression)
+	test_identifier(exp.fn, 'add')
+	
+	expect(exp.arguments.length).toBe(3)
+	test_literal_expression(exp.arguments[0], 1)
+	test_infix_expression(exp.arguments[1], 2, '*', 3)
+	test_infix_expression(exp.arguments[2], 4, '+', 5)
+})
+
+test('call expression parameter parsing', () => {
+	const call_cases = [
+	['add();', 'add', []],
+	['add(1);', 'add', ['1']],
+	['add(1, 2 * 3, 4 + 5)', 'add', ['1', '(2 * 3)', '(4 + 5)']]]
+
+	for (const [input, expected_ident, expected_args] of call_cases) {
+		const p = new Parser (new Lexer (input))
+		const program = p.parse_program()
+
+		check_parser_errors(p)
+
+		const exp = program.statements[0].expression
+		expect(exp).toBeInstanceOf(CallExpression)
+		test_identifier(exp.fn, expected_ident)
+
+		expect(exp.arguments.length).toBe(expected_args.length)
+		for (const [i, arg] of expected_args.entries()) {
+			expect(exp.arguments[i].toString()).toBe(arg)
 		}
 	}
 })
