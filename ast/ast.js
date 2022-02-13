@@ -17,11 +17,11 @@ class Program {
 }
 
 class LetStatement {
+	name = null
 	// value - an instance of Expression
 
-	constructor(token, name) {
+	constructor(token) {
 		this.token = token
-		this.name = name // an instance of Identifier
 	}
 
 	statement_node() {
@@ -63,6 +63,8 @@ class Identifier {
 }
 
 class ReturnStatement {
+	return_value = null
+
 	constructor(token) {
 		this.token = token
 	}

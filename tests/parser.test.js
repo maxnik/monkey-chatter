@@ -6,61 +6,42 @@ const { LetStatement, ReturnStatement, ExpressionStatement,
 const Parser = require('../parser/parser')
 
 test('let statements', () => {
-	const input = `let x = 5;
-	let y = 10;
-	let foobar = 838383;
-	`
+	const cases = [
+		['let x = 5;',      'x', 5],
+		['let y = true;',   'y', true],
+		['let foobar = y;', 'foobar', 'y']]
 
-	const l = new Lexer (input)
-	const p = new Parser (l)
+	for (const [input, expected_identifier, expected_value] of cases) {
+		const p = new Parser (new Lexer (input))	
+		const program = p.parse_program()
 
-	const program = p.parse_program()
-	expect(program.statements.length).toBe(3)
-	expect(p.errors.length).toBe(0)
+		check_parser_errors(p)
+		expect(program.statements.length).toBe(1)
 
-	const expected_identifiers = ['x', 'y', 'foobar']
-	for (const [i, identifier] of expected_identifiers.entries()) {
-		const statement = program.statements[i]
-
-		expect(statement).toBeInstanceOf(LetStatement)
-		expect(statement.token_literal()).toBe('let')
-		// expect(statement.name.value).toBe(identifier)
-		expect(statement.name.token_literal()).toBe(identifier)
+		const stmt = program.statements[0]
+		expect(stmt.token_literal()).toBe('let')
+		expect(stmt).toBeInstanceOf(LetStatement)
+		expect(stmt.name.value).toBe(expected_identifier)
+		expect(stmt.value.value).toBe(expected_value)
 	}
 })
 
-test("handles tokens that aren't of expected type in let statements", () => {
-	const input = `let x 5;
-	let y = 10;
-	let = 838383;
-	`
-
-	const l = new Lexer (input)
-	const p = new Parser (l)
-	const program = p.parse_program()
-
-	// expect(program.statements.length).toBe(1)
-	// expect(p.errors.length).toBe(2)
-	expect(p.errors[0]).toBe('expected next token to be =, got INT instead')
-	expect(p.errors[1]).toBe('expected next token to be IDENT, got = instead')
-})
-
 test('return statements', () => {
-	const input = `return 5;
-	return 10;
-	return 993322;
-	`
+	const cases = [
+		['return 5;', 5],
+		['return true;', true],
+		['return foobar;', 'foobar']]
 
-	const l = new Lexer (input)
-	const p = new Parser (l)
+	for (const [input, expected_value] of cases) {
+		const p = new Parser (new Lexer (input))	
+		const program = p.parse_program()
 
-	const program = p.parse_program()
-	expect(program.statements.length).toBe(3)
-	expect(p.errors.length).toBe(0)
+		check_parser_errors(p)
+		expect(program.statements.length).toBe(1)
 
-	for (const stmt of program.statements.values()) {
+		const stmt = program.statements[0]
 		expect(stmt).toBeInstanceOf(ReturnStatement)
-		expect(stmt.token_literal()).toBe('return')
+		test_literal_expression(stmt.return_value, expected_value)
 	}
 })
 

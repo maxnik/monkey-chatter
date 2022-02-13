@@ -102,14 +102,17 @@ class Parser {
 			return null
 		}
 
-		stmt.name = new Identifier (this.cur_token, null)
+		stmt.name = new Identifier (this.cur_token, this.cur_token.literal)
 
 		if (! this.expect_peek(token_types.ASSIGN)) {
 			return null
 		}
 
-		while (this.cur_token.type !== token_types.SEMICOLON) {
-			// We're skipping the expressions until we encounter a semicolon
+		this.next_token()
+
+		stmt.value = this.parse_expression(precedences.LOWEST)
+
+		if (this.peek_token.type === token_types.SEMICOLON) {
 			this.next_token()
 		}
 
@@ -121,8 +124,9 @@ class Parser {
 
 		this.next_token()
 
-		while (this.cur_token.type !== token_types.SEMICOLON) {
-			// We're skipping the expressions until we encounter a semicolon
+		stmt.return_value = this.parse_expression(precedences.LOWEST)
+
+		if (this.peek_token.type === token_types.SEMICOLON) {			
 			this.next_token()
 		}
 
