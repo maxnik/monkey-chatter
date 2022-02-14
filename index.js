@@ -1,6 +1,6 @@
 const readline = require('readline')
 const Lexer = require('./lexer')
-const token_types = require('./token/token_types')
+const Parser = require('./parser/parser')
 
 console.log('This is the Monkey programming language!')
 console.log('Feel free to type in commands')
@@ -14,12 +14,15 @@ rl.on('line', (input) => {
 	if (!input) {
 		rl.close()
 	} else {
-		const l = new Lexer(input)
+		const p = new Parser (new Lexer(input))
+		const program = p.parse_program()
 
-		let token = l.next_token()
-		while (token.type != token_types.EOF) {
-			console.log(token)
-			token = l.next_token()
+		if (p.errors.length != 0) {
+			for (const error of p.errors) {
+				console.log(`\t${error}`)
+			}
+		} else {
+			console.log(program.toString())
 		}
 
 		rl.prompt()

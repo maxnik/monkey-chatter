@@ -225,7 +225,7 @@ class FunctionLiteral {
 	toString() {
 		const params = this.parameters.map(p => p.toString()).join(', ')
 
-		return `${this.token_literal()}(${params})${this.body.toString()}`
+		return `${this.token_literal()}(${params}) { ${this.body.toString()} }`
 	}
 }
 
