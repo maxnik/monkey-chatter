@@ -1,6 +1,7 @@
 const readline = require('readline')
 const Lexer = require('./lexer')
 const Parser = require('./parser/parser')
+const { evaluate } = require('./evaluator')
 
 console.log('This is the Monkey programming language!')
 console.log('Feel free to type in commands')
@@ -22,7 +23,10 @@ rl.on('line', (input) => {
 				console.log(`\t${error}`)
 			}
 		} else {
-			console.log(program.toString())
+			const evaluated = evaluate(program)
+			if (evaluated) {
+				console.log(evaluated.inspect())	
+			}			
 		}
 
 		rl.prompt()
