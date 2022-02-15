@@ -29,6 +29,10 @@ class IntegerObject {
 }
 
 class BooleanObject {
+	constructor(value) {
+		this.value = value
+	}
+
 	type() {
 		return types.BOOLEAN_OBJ
 	}
