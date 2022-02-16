@@ -6,7 +6,9 @@ const { evaluate } = require('../evaluator')
 test('eval integer expression', () => {
 	const cases = [
 		['5', 5],
-		['10', 10]]
+		['10', 10],
+		['-5', -5],
+		['-10', -10]]
 
 	for (const [input, expected] of cases) {
 
@@ -24,6 +26,20 @@ test('eval boolean expression', () => {
 
 		const evaluated = test_eval(input)
 		test_boolean_object(evaluated, expected)
+	}
+})
+
+test('bang operator', () => {
+	const cases = [
+		['!true', false],
+		['!false', true],
+		['!5', false],
+		['!!true', true],
+		['!!false', false],
+		['!!5', true]]
+
+	for (const [input, expected] of cases) {
+		test_boolean_object(test_eval(input), expected)
 	}
 })
 
