@@ -5,7 +5,7 @@ const types = Object.freeze({
 })
 
 class NullObject {
-	type() {
+	get type() {
 		return types.NULL_OBJ
 	}
 
@@ -19,7 +19,7 @@ class IntegerObject {
 		this.value = value
 	}
 
-	type() {
+	get type() {
 		return types.INTEGER_OBJ
 	}
 
@@ -33,7 +33,7 @@ class BooleanObject {
 		this.value = value
 	}
 
-	type() {
+	get type() {
 		return types.BOOLEAN_OBJ
 	}
 

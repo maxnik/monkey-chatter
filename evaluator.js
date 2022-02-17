@@ -8,17 +8,17 @@ function evaluate(node) {
 	switch (node.constructor.name) {
 		case 'Program':
 			return eval_statements(node.statements)
-			break
 		case 'IntegerLiteral': 
 			return new IntegerObject (node.value)
-			break
 		case 'BooleanLiteral':
 			return node.value ? TRUE : FALSE
-			break
 		case 'PrefixExpression':
+			const operand = evaluate(node.right)
+			return eval_prefix_expression(node.operator, operand)
+		case 'InfixExpression':
+			const left = evaluate(node.left)
 			const right = evaluate(node.right)
-			return eval_prefix_expression(node.operator, right)
-			break
+			return eval_inflix_expression(node.operator, left, right)
 		case 'ExpressionStatement':
 			return evaluate(node.expression)
 	}
@@ -38,10 +38,43 @@ function eval_prefix_expression(operator, right) {
 	switch (operator) {
 		case '!':
 			return eval_bang_operator(right)
-			break
 		case '-':
 			return eval_minus_prefix_operator(right)
-			break
+		default:
+			return NULL
+	}
+}
+
+function eval_inflix_expression(operator, left, right) {
+	if (left.type === types.INTEGER_OBJ && right.type === types.INTEGER_OBJ) {
+		return eval_integer_inflix_expression(operator, left, right)
+	} else if (operator === '==') {
+		return left === right ? TRUE : FALSE
+	} else if (operator === '!=') { 
+		return left !== right ? TRUE : FALSE
+	} else {
+		return NULL
+	}
+}
+
+function eval_integer_inflix_expression(operator, left, right) {
+	switch (operator) {
+		case '+':
+			return new IntegerObject (left.value + right.value)
+		case '-':
+			return new IntegerObject (left.value - right.value)
+		case '*':
+			return new IntegerObject (left.value * right.value)
+		case '/':
+			return new IntegerObject (left.value / right.value)
+		case '<':
+			return left.value < right.value ? TRUE : FALSE
+		case '>':
+			return left.value > right.value ? TRUE : FALSE
+		case '==':
+			return left.value === right.value ? TRUE : FALSE
+		case '!=':
+			return left.value !== right.value ? TRUE : FALSE
 		default:
 			return NULL
 	}
@@ -51,21 +84,17 @@ function eval_bang_operator(right) {
 	switch (right) {
 		case TRUE: 
 			return FALSE
-			break
 		case FALSE:
 			return TRUE
-			break
 		case NULL:
 			return TRUE
-			break
 		default:
 			return FALSE
-			null
 	}
 }
 
 function eval_minus_prefix_operator(right) {
-	if (right.type() !== types.INTEGER_OBJ) {
+	if (right.type !== types.INTEGER_OBJ) {
 		return NULL
 	} else {
 		return new IntegerObject (-right.value)
