@@ -1,6 +1,6 @@
 const Lexer = require('../lexer')
 const Parser = require('../parser/parser')
-const { IntegerObject, BooleanObject } = require('../object')
+const { IntegerObject, BooleanObject, NullObject } = require('../object')
 const { evaluate } = require('../evaluator')
 
 test('eval integer expression', () => {
@@ -67,6 +67,27 @@ test('bang operator', () => {
 
 	for (const [input, expected] of cases) {
 		test_boolean_object(test_eval(input), expected)
+	}
+})
+
+test('if else expressions', () => {
+	const cases = [
+		['if (true) { 10 }',              10],
+		['if (false) { 10 }',             null],
+		['if (1) { 10 }',                 10],
+		['if (1 < 2) { 10 }',             10],
+		['if (1 > 2) { 10 }',             null],
+		['if (1 > 2) { 10 } else { 20 }', 20],
+		['if (1 < 2) { 10 } else { 20 }', 10]]
+
+	for (const [input, expected] of cases) {
+		const evaluated = test_eval(input)
+
+		if (typeof(expected) === 'number') {
+			test_integer_object(evaluated, expected)
+		} else {
+			expect(evaluated).toBeInstanceOf(NullObject)
+		}
 	}
 })
 

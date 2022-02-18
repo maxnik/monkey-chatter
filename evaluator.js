@@ -19,6 +19,10 @@ function evaluate(node) {
 			const left = evaluate(node.left)
 			const right = evaluate(node.right)
 			return eval_inflix_expression(node.operator, left, right)
+		case 'IfExpression':
+			return eval_if_expression(node)
+		case 'BlockStatement':
+			return eval_statements(node.statements)
 		case 'ExpressionStatement':
 			return evaluate(node.expression)
 	}
@@ -98,6 +102,31 @@ function eval_minus_prefix_operator(right) {
 		return NULL
 	} else {
 		return new IntegerObject (-right.value)
+	}
+}
+
+function eval_if_expression(ie) {
+	const condition = evaluate(ie.condition)
+
+	if (is_truthy(condition)) {
+		return evaluate(ie.consequence)
+	} else if (ie.alternative) {
+		return evaluate(ie.alternative)
+	} else {
+		return NULL
+	}
+}
+
+function is_truthy(obj) {
+	switch (obj) {
+		case NULL:
+			return false
+		case TRUE:
+			return true
+		case FALSE:
+			return false
+		default:
+			return true
 	}
 }
 
