@@ -1,4 +1,5 @@
-const { types, IntegerObject, BooleanObject, NullObject } = require('./object')
+const { types, IntegerObject, BooleanObject, NullObject,
+		ReturnValue } = require('./object')
 
 const TRUE = new BooleanObject (true)
 const FALSE = new BooleanObject (false)
@@ -7,7 +8,7 @@ const NULL  = new NullObject ()
 function evaluate(node) {
 	switch (node.constructor.name) {
 		case 'Program':
-			return eval_statements(node.statements)
+			return eval_program(node.statements)
 		case 'IntegerLiteral': 
 			return new IntegerObject (node.value)
 		case 'BooleanLiteral':
@@ -22,19 +23,39 @@ function evaluate(node) {
 		case 'IfExpression':
 			return eval_if_expression(node)
 		case 'BlockStatement':
-			return eval_statements(node.statements)
+			return eval_block_statement(node.statements)
 		case 'ExpressionStatement':
 			return evaluate(node.expression)
+		case 'ReturnStatement':
+			return new ReturnValue (evaluate(node.return_value))
 	}
 }
 
-function eval_statements(stmts) {
+function eval_program(stmts) {
 	let result = null
 
 	for (const statement of stmts) {
 		result = evaluate(statement)
+
+		if (result.constructor.name === 'ReturnValue') {
+			return result.value
+		}
 	}
 
+	return result
+}
+
+function eval_block_statement(stmts) {
+	let result = null
+
+	for (const statement of stmts) {
+		result = evaluate(statement)
+
+		if (result && result.type === types.RETURN_VALUE_OBJ) {
+			return result
+		}
+	}
+	
 	return result
 }
 

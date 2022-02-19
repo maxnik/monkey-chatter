@@ -91,6 +91,25 @@ test('if else expressions', () => {
 	}
 })
 
+test('return statements', () => {
+	const cases = [
+		['return 10;',          10],
+		['return 10; 9',        10],
+		['return 2 * 5; 9',     10],
+		['9; return 2 * 5; 11', 10],
+		[`if (10 > 1) {
+			if (10 > 1) {
+				return 10; 
+			}
+
+			return 1;
+		}`,                     10]]
+
+	for (const [input, expected] of cases) {
+		test_integer_object(test_eval(input), expected)
+	}
+})
+
 function test_eval(input) {
 	const p = new Parser (new Lexer (input))
 	const program = p.parse_program()

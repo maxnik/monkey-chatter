@@ -1,7 +1,8 @@
 const types = Object.freeze({
 	NULL_OBJ: 'NULL',
 	INTEGER_OBJ: 'INTEGER',
-	BOOLEAN_OBJ: 'BOOLEAN'
+	BOOLEAN_OBJ: 'BOOLEAN',
+	RETURN_VALUE_OBJ: 'RETURN_VALUE'
 })
 
 class NullObject {
@@ -42,9 +43,24 @@ class BooleanObject {
 	}
 }
 
+class ReturnValue {
+	constructor(value) {
+		this.value = value
+	}
+
+	get type() {
+		return types.RETURN_VALUE_OBJ
+	}
+
+	inspect() {
+		return this.value.inspect()
+	}
+}
+
 module.exports = {
 	types,
 	NullObject,
 	IntegerObject,
-	BooleanObject
+	BooleanObject,
+	ReturnValue
 }
