@@ -1,6 +1,7 @@
 const Lexer = require('../lexer')
 const Parser = require('../parser/parser')
-const { IntegerObject, BooleanObject, NullObject } = require('../object')
+const { IntegerObject, BooleanObject, NullObject,
+		ErrorObject } = require('../object')
 const { evaluate } = require('../evaluator')
 
 test('eval integer expression', () => {
@@ -107,6 +108,29 @@ test('return statements', () => {
 
 	for (const [input, expected] of cases) {
 		test_integer_object(test_eval(input), expected)
+	}
+})
+
+test('error handling', () => {
+	const cases = [
+		['5 + true;',                     'type mismatch: INTEGER + BOOLEAN'],
+		['5 + true; 6',                   'type mismatch: INTEGER + BOOLEAN'],
+		['-true',                         'unknown operator: -BOOLEAN'],
+		['true + false;',                 'unknown operator: BOOLEAN + BOOLEAN'],
+		['5; true + false; 6',            'unknown operator: BOOLEAN + BOOLEAN'],
+		['if (10 > 1) { true + false; }', 'unknown operator: BOOLEAN + BOOLEAN'],
+		[`if (10 > 1) {
+			if (10 > 1) {
+				return true + false;
+			}
+			return 1;
+		 }`,                               'unknown operator: BOOLEAN + BOOLEAN']]
+
+	for (const [input, expected_message] of cases) {
+		const evaluated = test_eval(input)
+
+		expect(evaluated).toBeInstanceOf(ErrorObject)
+		expect(evaluated.message).toBe(expected_message)
 	}
 })
 
