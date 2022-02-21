@@ -72,11 +72,25 @@ class ErrorObject {
 	}
 }
 
+class Environment {
+	store = {}
+
+	get(name) {
+		return this.store[name]
+	}
+
+	set(name, val) {
+		this.store[name] = val
+		return val
+	}
+}
+
 module.exports = {
 	types,
 	NullObject,
 	IntegerObject,
 	BooleanObject,
 	ReturnValue, 
-	ErrorObject
+	ErrorObject,
+	Environment
 }

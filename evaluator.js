@@ -1,79 +1,91 @@
+const { Program, IntegerLiteral, BooleanLiteral,
+		PrefixExpression, InfixExpression, IfExpression,
+		BlockStatement, ExpressionStatement, ReturnStatement,
+		LetStatement, Identifier } = require('./ast/ast')
 const { types, IntegerObject, BooleanObject, NullObject,
-		ReturnValue, ErrorObject } = require('./object')
+		ReturnValue, ErrorObject, Environment } = require('./object')
 
 const TRUE = new BooleanObject (true)
 const FALSE = new BooleanObject (false)
 const NULL  = new NullObject ()
 
-function evaluate(node) {
-	switch (node.constructor.name) {
-		case 'Program':
-			return eval_program(node.statements)
+function evaluate(node, env) {
+	if (node instanceof Program) {
+		return eval_program(node.statements, env)
 
-		case 'IntegerLiteral': 
-			return new IntegerObject (node.value)
+	} else if (node instanceof IntegerLiteral) {
+		return new IntegerObject (node.value)
 
-		case 'BooleanLiteral':
-			return node.value ? TRUE : FALSE
+	} else if (node instanceof BooleanLiteral) {
+		return node.value ? TRUE : FALSE
 
-		case 'PrefixExpression':
-			const operand = evaluate(node.right)
-			if (operand.type === types.ERROR_OBJ) {
-				return operand
-			}			
-			return eval_prefix_expression(node.operator, operand)
+ 	} else if (node instanceof PrefixExpression) {
+ 		const operand = evaluate(node.right, env)
+		if (operand.type === types.ERROR_OBJ) {
+			return operand
+		}			
+		return eval_prefix_expression(node.operator, operand)
 
-		case 'InfixExpression':
-			const left = evaluate(node.left)
-			if (left.type === types.ERROR_OBJ) {
-				return left
-			}
-			const right = evaluate(node.right)
-			if (right.type === types.ERROR_OBJ) {
-				return right
-			}
-			return eval_inflix_expression(node.operator, left, right)
+ 	} else if (node instanceof InfixExpression) {
+ 		const left = evaluate(node.left, env)
+		if (left.type === types.ERROR_OBJ) {
+			return left
+		}
+		const right = evaluate(node.right, env)
+		if (right.type === types.ERROR_OBJ) {
+			return right
+		}
+		return eval_inflix_expression(node.operator, left, right)
 
-		case 'IfExpression':
-			return eval_if_expression(node)
+ 	} else if (node instanceof IfExpression) {
+ 		return eval_if_expression(node, env)
 
-		case 'BlockStatement':
-			return eval_block_statement(node.statements)
+ 	} else if (node instanceof BlockStatement) {
+ 		return eval_block_statement(node.statements, env)
 
-		case 'ExpressionStatement':
-			return evaluate(node.expression)
+ 	} else if (node instanceof ExpressionStatement) {
+ 		return evaluate(node.expression, env)
 
-		case 'ReturnStatement':
-			const val = evaluate(node.return_value)
-			if (val.type === types.ERROR_OBJ) {
-				return val
-			}
-			return new ReturnValue (val)
-	}
+ 	} else if (node instanceof ReturnStatement) {
+ 		const val = evaluate(node.return_value, env)
+		if (val.type === types.ERROR_OBJ) {
+			return val
+		}
+		return new ReturnValue (val)
+
+ 	} else if (node instanceof LetStatement) {
+ 		const assigned_value = evaluate(node.value, env)
+		if (assigned_value === types.ERROR_OBJ) {
+			return assigned_value
+		}
+		env.set(node.name.value, assigned_value)
+
+ 	} else if (node instanceof Identifier) {
+ 		return eval_identifier(node, env)
+ 	}
 }
 
-function eval_program(stmts) {
+function eval_program(stmts, env) {
 	let result = null
 
 	for (const statement of stmts) {
-		result = evaluate(statement)
+		result = evaluate(statement, env)
 
-		switch (result.constructor.name) {
-			case 'ReturnValue':
-				return result.value
-			case 'ErrorObject':
-				return result
+		if (result instanceof ReturnValue) {
+			return result.value
+		} else if (result instanceof ErrorObject) {
+			return result
 		}
 	}
 
 	return result
 }
 
-function eval_block_statement(stmts) {
+function eval_block_statement(stmts, env) {
 	let result = null
 
 	for (const statement of stmts) {
-		result = evaluate(statement)
+		result = evaluate(statement, env)
 
 		if (result) {
 			if (result.type === types.RETURN_VALUE_OBJ || result.type === types.ERROR_OBJ) {
@@ -154,20 +166,30 @@ function eval_minus_prefix_operator(right) {
 	}
 }
 
-function eval_if_expression(ie) {
-	const condition = evaluate(ie.condition)
+function eval_if_expression(ie, env) {
+	const condition = evaluate(ie.condition, env)
 
 	if (condition.type === types.ERROR_OBJ) {
 		return condition
 	}
 
 	if (is_truthy(condition)) {
-		return evaluate(ie.consequence)
+		return evaluate(ie.consequence, env)
 	} else if (ie.alternative) {
-		return evaluate(ie.alternative)
+		return evaluate(ie.alternative, env)
 	} else {
 		return NULL
 	}
+}
+
+function eval_identifier(node, env) {
+	const val = env.get(node.value)
+
+	if ( !val) {
+		return new ErrorObject(`identifier not found: ${node.value}`)
+	}
+
+	return val
 }
 
 function is_truthy(obj) {

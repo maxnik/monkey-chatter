@@ -1,7 +1,7 @@
 const Lexer = require('../lexer')
 const Parser = require('../parser/parser')
 const { IntegerObject, BooleanObject, NullObject,
-		ErrorObject } = require('../object')
+		ErrorObject, Environment } = require('../object')
 const { evaluate } = require('../evaluator')
 
 test('eval integer expression', () => {
@@ -124,7 +124,8 @@ test('error handling', () => {
 				return true + false;
 			}
 			return 1;
-		 }`,                               'unknown operator: BOOLEAN + BOOLEAN']]
+		 }`,                               'unknown operator: BOOLEAN + BOOLEAN'],
+		['foobar', 'identifier not found: foobar']]
 
 	for (const [input, expected_message] of cases) {
 		const evaluated = test_eval(input)
@@ -134,11 +135,24 @@ test('error handling', () => {
 	}
 })
 
+test('let statements', () => {
+	const cases = [
+		['let a = 5; a;',                               5],
+		['let a = 5 * 5; a;',                           25],
+		['let a = 5; let b = a; b',                     5],
+		['let a = 5; let b = a; let c = a + b + 5; c;', 15]]
+
+	for (const [input, expected] of cases) {
+		test_integer_object(test_eval(input), expected)
+	}
+})
+
 function test_eval(input) {
 	const p = new Parser (new Lexer (input))
 	const program = p.parse_program()
+	const env = new Environment ()
 
-	return evaluate(program)
+	return evaluate(program, env)
 }
 
 function test_integer_object(obj, expected) {
