@@ -1,7 +1,7 @@
 const Lexer = require('../lexer')
 const Parser = require('../parser/parser')
 const { IntegerObject, BooleanObject, NullObject,
-		ErrorObject, Environment } = require('../object')
+		ErrorObject, Environment, FunctionObject } = require('../object')
 const { evaluate } = require('../evaluator')
 
 test('eval integer expression', () => {
@@ -104,7 +104,18 @@ test('return statements', () => {
 			}
 
 			return 1;
-		}`,                     10]]
+		  }`,                   10],
+		[`let f = fn(x) {
+  			return x;
+  			x + 10;
+		  };
+		  f(10);`,              10],
+		[`let f = fn(x) {
+   			let result = x + 10;
+   			return result;
+   			return 10;
+		  };
+		  f(10);`,              20]]
 
 	for (const [input, expected] of cases) {
 		test_integer_object(test_eval(input), expected)
@@ -145,6 +156,39 @@ test('let statements', () => {
 	for (const [input, expected] of cases) {
 		test_integer_object(test_eval(input), expected)
 	}
+})
+
+test('function object', () => {
+	const input = 'fn(x) { x + 2; };'
+	const fn = test_eval(input)
+
+	expect(fn).toBeInstanceOf(FunctionObject)
+	expect(fn.parameters.length).toBe(1)
+	expect(fn.parameters[0].toString()).toBe('x')
+	expect(fn.body.toString()).toBe('(x + 2)')
+})
+
+test.each([
+['let identity = fn(x) { x; }; identity(5);',             5],
+['let identity = fn(x) { return x; }; identity(5);',      5],
+['let double = fn(x) { x * 2; }; double(5);',             10],
+['let add = fn(x, y) { x + y; }; add(5, 6);',             11],
+['let add = fn(x, y) { x + y; }; add(5 + 6, add(7, 8));', 26],
+['fn(x) { x; }(5)',                                       5]])(
+	'function application %s', (input, expected) => {
+		
+		test_integer_object(test_eval(input), expected)
+})
+
+test('closures', () => {
+	const input = `
+		let newAdder = fn(x) {
+			fn(y) { x + y };
+		};
+		let addTwo = newAdder(2);
+		addTwo(2);`
+
+	test_integer_object(test_eval(input), 4)
 })
 
 function test_eval(input) {

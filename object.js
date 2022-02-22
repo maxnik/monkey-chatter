@@ -3,7 +3,8 @@ const types = Object.freeze({
 	INTEGER_OBJ: 'INTEGER',
 	BOOLEAN_OBJ: 'BOOLEAN',
 	RETURN_VALUE_OBJ: 'RETURN_VALUE',
-	ERROR_OBJ: 'ERROR'
+	ERROR_OBJ: 'ERROR',
+	FUNCTION_OBJ: 'FUNCTION'
 })
 
 class NullObject {
@@ -75,13 +76,43 @@ class ErrorObject {
 class Environment {
 	store = {}
 
+	constructor(outer) {
+		if (outer) {
+			this.outer = outer
+		}
+	}
+
 	get(name) {
-		return this.store[name]
+		let obj = this.store[name]
+
+		if ( !obj && this.outer) {
+			obj = this.outer.get(name)
+		}
+
+		return obj
 	}
 
 	set(name, val) {
 		this.store[name] = val
 		return val
+	}
+}
+
+class FunctionObject {
+	constructor(parameters, body, env) {
+		this.parameters = parameters
+		this.body = body
+		this.env = env
+	}
+
+	get type() {
+		return types.FUNCTION_OBJ
+	}
+
+	inspect() {
+		const params = this.parameters.map( p => p.toString() ).join(', ')
+
+		return `fn(${params}) {\n${this.body.toString()}\n}`
 	}
 }
 
@@ -92,5 +123,6 @@ module.exports = {
 	BooleanObject,
 	ReturnValue, 
 	ErrorObject,
-	Environment
+	Environment,
+	FunctionObject
 }

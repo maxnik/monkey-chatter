@@ -1,9 +1,11 @@
 const { Program, IntegerLiteral, BooleanLiteral,
 		PrefixExpression, InfixExpression, IfExpression,
 		BlockStatement, ExpressionStatement, ReturnStatement,
-		LetStatement, Identifier } = require('./ast/ast')
+		LetStatement, Identifier, FunctionLiteral,
+		CallExpression } = require('./ast/ast')
 const { types, IntegerObject, BooleanObject, NullObject,
-		ReturnValue, ErrorObject, Environment } = require('./object')
+		ReturnValue, ErrorObject, Environment,
+		FunctionObject } = require('./object')
 
 const TRUE = new BooleanObject (true)
 const FALSE = new BooleanObject (false)
@@ -21,18 +23,18 @@ function evaluate(node, env) {
 
  	} else if (node instanceof PrefixExpression) {
  		const operand = evaluate(node.right, env)
-		if (operand.type === types.ERROR_OBJ) {
+		if (is_error(operand)) {
 			return operand
 		}			
 		return eval_prefix_expression(node.operator, operand)
 
  	} else if (node instanceof InfixExpression) {
  		const left = evaluate(node.left, env)
-		if (left.type === types.ERROR_OBJ) {
+		if (is_error(left)) {
 			return left
 		}
 		const right = evaluate(node.right, env)
-		if (right.type === types.ERROR_OBJ) {
+		if (is_error(right)) {
 			return right
 		}
 		return eval_inflix_expression(node.operator, left, right)
@@ -48,20 +50,36 @@ function evaluate(node, env) {
 
  	} else if (node instanceof ReturnStatement) {
  		const val = evaluate(node.return_value, env)
-		if (val.type === types.ERROR_OBJ) {
+		if (is_error(val)) {
 			return val
 		}
 		return new ReturnValue (val)
 
  	} else if (node instanceof LetStatement) {
  		const assigned_value = evaluate(node.value, env)
-		if (assigned_value === types.ERROR_OBJ) {
+		if (is_error(assigned_value)) {
 			return assigned_value
 		}
 		env.set(node.name.value, assigned_value)
 
  	} else if (node instanceof Identifier) {
  		return eval_identifier(node, env)
+
+ 	} else if (node instanceof FunctionLiteral) {
+ 		return new FunctionObject (node.parameters, node.body, env)
+
+ 	} else if (node instanceof CallExpression) {
+ 		const fn = evaluate(node.fn, env)
+ 		if (is_error(fn)) {
+ 			return fn
+ 		}
+
+ 		const args = eval_expressions(node.arguments, env)
+ 		if (args.length === 1 && is_error(args[0])) {
+ 			return args[0]
+ 		}
+
+ 		return apply_function(fn, args)
  	}
 }
 
@@ -192,6 +210,46 @@ function eval_identifier(node, env) {
 	return val
 }
 
+function eval_expressions(exps, env) {
+	const results = []
+
+	for (const exp of exps) {
+		const evaluated = evaluate(exp, env)
+		
+		if (is_error(evaluated)) {
+			return [evaluated]
+		}
+
+		results.push(evaluated)
+	}
+	return results
+}
+
+function apply_function(fn, args) {
+	if (! (fn instanceof FunctionObject)) {
+		return new ErrorObject(`not a function: ${fn.type}`)
+	}
+
+	const extended_env = extend_function_env(fn, args)
+	const evaluated = evaluate(fn.body, extended_env)
+
+	if (evaluated instanceof ReturnValue) {
+		return evaluated.value
+	}
+
+	return evaluated
+}
+
+function extend_function_env(fn, args) {
+	const env = new Environment (fn.env)
+
+	for (const [i, param] of fn.parameters.entries()) {
+		env.set(param.value, args[i])
+	}
+
+	return env
+}
+
 function is_truthy(obj) {
 	switch (obj) {
 		case NULL:
@@ -203,6 +261,10 @@ function is_truthy(obj) {
 		default:
 			return true
 	}
+}
+
+function is_error(obj) {
+	return obj.type === types.ERROR_OBJ
 }
 
 module.exports = {
