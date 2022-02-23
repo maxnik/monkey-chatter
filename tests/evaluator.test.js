@@ -1,7 +1,8 @@
 const Lexer = require('../lexer')
 const Parser = require('../parser/parser')
 const { IntegerObject, BooleanObject, NullObject,
-		ErrorObject, Environment, FunctionObject } = require('../object')
+		ErrorObject, Environment, FunctionObject,
+		StringObject } = require('../object')
 const { evaluate } = require('../evaluator')
 
 test('eval integer expression', () => {
@@ -136,7 +137,8 @@ test('error handling', () => {
 			}
 			return 1;
 		 }`,                               'unknown operator: BOOLEAN + BOOLEAN'],
-		['foobar', 'identifier not found: foobar']]
+		['foobar',                         'identifier not found: foobar'],
+		['"Hello" - "World"',              'unknown operator: STRING - STRING']]
 
 	for (const [input, expected_message] of cases) {
 		const evaluated = test_eval(input)
@@ -189,6 +191,20 @@ test('closures', () => {
 		addTwo(2);`
 
 	test_integer_object(test_eval(input), 4)
+})
+
+test('string literal', () => {
+	const evaluated = test_eval('"Hello World!"')
+
+	expect(evaluated).toBeInstanceOf(StringObject)
+	expect(evaluated.value).toBe('Hello World!')
+})
+
+test('string concatenation', () => {
+	const evaluated = test_eval('"Hello" + " " + "World!"')
+
+	expect(evaluated).toBeInstanceOf(StringObject)
+	expect(evaluated.value).toBe('Hello World!')	
 })
 
 function test_eval(input) {

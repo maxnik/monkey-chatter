@@ -21,6 +21,8 @@ test('get feedback about about the working state of the lexer', () => {
 
     10 == 10;
     10 != 9;
+    "foobar"
+    "foo bar"
     `
 
     const expected_results = [
@@ -105,16 +107,19 @@ test('get feedback about about the working state of the lexer', () => {
         [token_types.NOT_EQ, '!='],
         [token_types.INT, '9'],
         [token_types.SEMICOLON, ';'],
+
+        [token_types.STRING, 'foobar'],
+        [token_types.STRING, 'foo bar'],
         [token_types.EOF, '']
     ]
 
     const lexer = new Lexer(input)
 
-    for (const expected of expected_results) {
+    for (const [expected_type, expected_literal] of expected_results) {
         const next_token = lexer.next_token()
 
-        expect(next_token.type).toBe(expected[0])
-        expect(next_token.literal).toBe(expected[1])
+        expect(next_token.type).toBe(expected_type)
+        expect(next_token.literal).toBe(expected_literal)
     }
 })
 

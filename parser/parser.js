@@ -2,7 +2,7 @@ const { Program, LetStatement, Identifier,
 	ReturnStatement, ExpressionStatement, IntegerLiteral,
 	BooleanLiteral, PrefixExpression, InfixExpression,
 	IfExpression, BlockStatement, FunctionLiteral,
-	CallExpression } = require('../ast/ast')
+	CallExpression, StringLiteral } = require('../ast/ast')
 const token_types = require('../token/token_types')
 
 const precedences = Object.freeze({
@@ -49,6 +49,7 @@ class Parser {
 		this.prefix_parse_fns[token_types.LPAREN] = parse_grouped_expression
 		this.prefix_parse_fns[token_types.IF] = parse_if_expression
 		this.prefix_parse_fns[token_types.FUNCTION] = parse_function_literal
+		this.prefix_parse_fns[token_types.STRING] = parse_string_literal
 
 		this.infix_parse_fns[token_types.PLUS] = parse_infix_expression
 		this.infix_parse_fns[token_types.MINUS] = parse_infix_expression
@@ -377,6 +378,10 @@ const parse_call_expression = (parser, fn) => {
 	exp.arguments = parser.parse_call_arguments()
 
 	return exp
+}
+
+const parse_string_literal = (parser) => {
+	return new StringLiteral (parser.cur_token, parser.cur_token.literal)
 }
 
 module.exports = Parser

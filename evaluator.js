@@ -2,10 +2,10 @@ const { Program, IntegerLiteral, BooleanLiteral,
 		PrefixExpression, InfixExpression, IfExpression,
 		BlockStatement, ExpressionStatement, ReturnStatement,
 		LetStatement, Identifier, FunctionLiteral,
-		CallExpression } = require('./ast/ast')
+		CallExpression, StringLiteral } = require('./ast/ast')
 const { types, IntegerObject, BooleanObject, NullObject,
 		ReturnValue, ErrorObject, Environment,
-		FunctionObject } = require('./object')
+		FunctionObject, StringObject } = require('./object')
 
 const TRUE = new BooleanObject (true)
 const FALSE = new BooleanObject (false)
@@ -80,6 +80,8 @@ function evaluate(node, env) {
  		}
 
  		return apply_function(fn, args)
+ 	} else if (node instanceof StringLiteral) {
+ 		return new StringObject (node.value)
  	}
 }
 
@@ -129,12 +131,19 @@ function eval_prefix_expression(operator, right) {
 function eval_inflix_expression(operator, left, right) {
 	if (left.type === types.INTEGER_OBJ && right.type === types.INTEGER_OBJ) {
 		return eval_integer_inflix_expression(operator, left, right)
+
+	} else if (left.type === types.STRING_OBJ && right.type === types.STRING_OBJ) {
+		return eval_string_infix_expression(operator, left, right)
+
 	} else if (left.type !== right.type) {
 		return new ErrorObject(`type mismatch: ${left.type} ${operator} ${right.type}`)
+
 	} else if (operator === '==') {
 		return left === right ? TRUE : FALSE
+
 	} else if (operator === '!=') { 
 		return left !== right ? TRUE : FALSE
+
 	} else {
 		return new ErrorObject(`unknown operator: ${left.type} ${operator} ${right.type}`)
 	}
@@ -161,6 +170,13 @@ function eval_integer_inflix_expression(operator, left, right) {
 		default:
 			return new ErrorObject(`unknown operator: ${left.type} ${operator} ${right.type}`)
 	}
+}
+
+function eval_string_infix_expression(operator, left, right) {
+	if (operator !== '+') {
+		return new ErrorObject(`unknown operator: ${left.type} ${operator} ${right.type}`)
+	}
+	return new StringObject (left.value + right.value)
 }
 
 function eval_bang_operator(right) {

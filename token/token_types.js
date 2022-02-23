@@ -36,5 +36,7 @@ module.exports = Object.freeze({
     FALSE: 'FALSE',
     IF: 'IF',
     ELSE: 'ELSE',
-    RETURN: 'RETURN'
+    RETURN: 'RETURN',
+
+    STRING: 'STRING'
 })

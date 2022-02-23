@@ -2,7 +2,7 @@ const Lexer = require('../lexer')
 const { LetStatement, ReturnStatement, ExpressionStatement, 
 	Identifier, IntegerLiteral, BooleanLiteral,
 	PrefixExpression, InfixExpression, IfExpression,
-	FunctionLiteral, CallExpression } = require('../ast/ast')
+	FunctionLiteral, CallExpression, StringLiteral } = require('../ast/ast')
 const Parser = require('../parser/parser')
 
 test('let statements', () => {
@@ -320,6 +320,21 @@ test('call expression parameter parsing', () => {
 			expect(exp.arguments[i].toString()).toBe(arg)
 		}
 	}
+})
+
+test('string literal expression', () => {
+	const input = '"hello world";'
+
+	const p = new Parser (new Lexer (input))
+	const program = p.parse_program()
+
+	check_parser_errors(p)
+	expect(program.statements[0]).toBeInstanceOf(ExpressionStatement)
+
+	const literal = program.statements[0].expression
+	expect(literal).toBeInstanceOf(StringLiteral)
+	expect(literal.value).toBe('hello world')
+	
 })
 
 function check_parser_errors(parser) {

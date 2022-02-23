@@ -84,6 +84,9 @@ class Lexer {
             case ',':
                 token = new Token (token_types.COMMA, this.ch)
                 break
+            case '"':
+                token = new Token (token_types.STRING, this.read_string())
+                break
             case null:
                 token = new Token (token_types.EOF, '')
                 break
@@ -133,6 +136,20 @@ class Lexer {
         } else {
             return this.input[this.read_position]
         }
+    }
+
+    read_string() {
+        const start = this.position + 1
+
+        while (true) {
+            this.read_char()
+
+            if (this.ch === '"' || this.ch == null) {
+                break
+            }
+        }
+
+        return this.input.slice(start, this.position)
     }
 }
 

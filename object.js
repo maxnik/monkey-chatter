@@ -4,7 +4,8 @@ const types = Object.freeze({
 	BOOLEAN_OBJ: 'BOOLEAN',
 	RETURN_VALUE_OBJ: 'RETURN_VALUE',
 	ERROR_OBJ: 'ERROR',
-	FUNCTION_OBJ: 'FUNCTION'
+	FUNCTION_OBJ: 'FUNCTION',
+	STRING_OBJ: 'STRING'
 })
 
 class NullObject {
@@ -116,6 +117,20 @@ class FunctionObject {
 	}
 }
 
+class StringObject {
+	constructor(value) {
+		this.value = value
+	}
+
+	get type() {
+		return types.STRING_OBJ
+	}
+
+	inspect() {
+		return this.value
+	}
+}
+
 module.exports = {
 	types,
 	NullObject,
@@ -124,5 +139,6 @@ module.exports = {
 	ReturnValue, 
 	ErrorObject,
 	Environment,
-	FunctionObject
+	FunctionObject,
+	StringObject
 }

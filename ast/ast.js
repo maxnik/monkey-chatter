@@ -126,6 +126,21 @@ class IntegerLiteral {
 	}
 }
 
+class StringLiteral {
+	constructor(token, value) {
+		this.token = token
+		this.value = value
+	}
+
+	token_literal() {
+		return this.token.literal
+	}
+
+	toString() {
+		return this.token.literal
+	}
+}
+
 class BooleanLiteral {
 
 	constructor(token, value) {
@@ -256,6 +271,7 @@ module.exports = {
 	ReturnStatement,
 	ExpressionStatement,
 	IntegerLiteral,
+	StringLiteral,
 	BooleanLiteral,
 	PrefixExpression,
 	InfixExpression,
