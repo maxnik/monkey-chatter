@@ -182,6 +182,23 @@ test.each([
 		test_integer_object(test_eval(input), expected)
 })
 
+test.each([
+['len("")',            0],
+['len("four")',        4],
+['len("hello world")', 11],
+['len(1)',             'argument to \'len\' not supported, got INTEGER'],
+['len("one", "two")',  'wrong number of arguments. got=2, want=1']])(
+	'built-in function %s', (input, expected) => {
+	const evaluated = test_eval(input)
+
+	if (typeof expected === 'string') {
+		expect(evaluated).toBeInstanceOf(ErrorObject)
+		expect(evaluated.message).toBe(expected)
+	} else {
+		test_integer_object(evaluated, expected)
+	}
+})
+
 test('closures', () => {
 	const input = `
 		let newAdder = fn(x) {

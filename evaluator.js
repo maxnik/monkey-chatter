@@ -5,11 +5,26 @@ const { Program, IntegerLiteral, BooleanLiteral,
 		CallExpression, StringLiteral } = require('./ast/ast')
 const { types, IntegerObject, BooleanObject, NullObject,
 		ReturnValue, ErrorObject, Environment,
-		FunctionObject, StringObject } = require('./object')
+		FunctionObject, StringObject, BuiltinObject } = require('./object')
 
 const TRUE = new BooleanObject (true)
 const FALSE = new BooleanObject (false)
 const NULL  = new NullObject ()
+
+const builtins = {
+	'len': new BuiltinObject ((args) => {
+		if (args.length !== 1) {
+			return new ErrorObject(`wrong number of arguments. got=${args.length}, want=1`)
+		}
+
+		const arg = args[0]
+		if (arg instanceof StringObject) {
+			return new IntegerObject (arg.value.length)
+		} else {
+			return new ErrorObject (`argument to 'len' not supported, got ${arg.type}`)
+		}
+	})
+}
 
 function evaluate(node, env) {
 	if (node instanceof Program) {
@@ -217,13 +232,18 @@ function eval_if_expression(ie, env) {
 }
 
 function eval_identifier(node, env) {
+	
 	const val = env.get(node.value)
-
-	if ( !val) {
-		return new ErrorObject(`identifier not found: ${node.value}`)
+	if (val) {
+		return val		
 	}
 
-	return val
+	const builtin = builtins[node.value]
+	if (builtin) {
+		return builtin
+	}
+
+	return new ErrorObject(`identifier not found: ${node.value}`)
 }
 
 function eval_expressions(exps, env) {
@@ -242,18 +262,19 @@ function eval_expressions(exps, env) {
 }
 
 function apply_function(fn, args) {
-	if (! (fn instanceof FunctionObject)) {
+	if (fn instanceof FunctionObject) {
+		const extended_env = extend_function_env(fn, args)
+		const evaluated = evaluate(fn.body, extended_env)
+		if (evaluated instanceof ReturnValue) {
+			return evaluated.value
+		}
+		return evaluated
+
+	} else if (fn instanceof BuiltinObject) {
+		return fn.fn(args)
+	} else {
 		return new ErrorObject(`not a function: ${fn.type}`)
 	}
-
-	const extended_env = extend_function_env(fn, args)
-	const evaluated = evaluate(fn.body, extended_env)
-
-	if (evaluated instanceof ReturnValue) {
-		return evaluated.value
-	}
-
-	return evaluated
 }
 
 function extend_function_env(fn, args) {
