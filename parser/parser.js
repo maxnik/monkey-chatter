@@ -2,7 +2,7 @@ const { Program, LetStatement, Identifier,
 	ReturnStatement, ExpressionStatement, IntegerLiteral,
 	BooleanLiteral, PrefixExpression, InfixExpression,
 	IfExpression, BlockStatement, FunctionLiteral,
-	CallExpression, StringLiteral } = require('../ast/ast')
+	CallExpression, StringLiteral, ArrayLiteral } = require('../ast/ast')
 const token_types = require('../token/token_types')
 
 const precedences = Object.freeze({
@@ -50,6 +50,7 @@ class Parser {
 		this.prefix_parse_fns[token_types.IF] = parse_if_expression
 		this.prefix_parse_fns[token_types.FUNCTION] = parse_function_literal
 		this.prefix_parse_fns[token_types.STRING] = parse_string_literal
+		this.prefix_parse_fns[token_types.LBRACKET] = parse_array_literal
 
 		this.infix_parse_fns[token_types.PLUS] = parse_infix_expression
 		this.infix_parse_fns[token_types.MINUS] = parse_infix_expression
@@ -215,28 +216,28 @@ class Parser {
 		return identifiers
 	}
 
-	parse_call_arguments() {
-		const args = []
+	parse_expression_list(end_token_type) {
+		const list = []
 
-		if (this.peek_token.type === token_types.RPAREN) {
+		if (this.peek_token.type === end_token_type) {
 			this.next_token()
-			return args
+			return list
 		}
 
 		this.next_token()
-		args.push(this.parse_expression(precedences.LOWEST))
+		list.push(this.parse_expression(precedences.LOWEST))
 
 		while (this.peek_token.type === token_types.COMMA) {
 			this.next_token()
 			this.next_token()
-			args.push(this.parse_expression(precedences.LOWEST))
+			list.push(this.parse_expression(precedences.LOWEST))
 		}
 
-		if (! this.expect_peek(token_types.RPAREN)) {
+		if (! this.expect_peek(end_token_type)) {
 			return null
 		}
 
-		return args
+		return list
 	}
 
 	expect_peek(token_type) {
@@ -375,13 +376,21 @@ const parse_function_literal = (parser) => {
 const parse_call_expression = (parser, fn) => {
 	const exp = new CallExpression (parser.cur_token, fn)
 
-	exp.arguments = parser.parse_call_arguments()
+	exp.arguments = parser.parse_expression_list(token_types.RPAREN)
 
 	return exp
 }
 
 const parse_string_literal = (parser) => {
 	return new StringLiteral (parser.cur_token, parser.cur_token.literal)
+}
+
+function parse_array_literal(parser) {
+	const array = new ArrayLiteral (parser.cur_token)
+
+	array.elements = parser.parse_expression_list(token_types.RBRACKET)
+
+	return array
 }
 
 module.exports = Parser

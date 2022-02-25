@@ -23,6 +23,7 @@ test('get feedback about about the working state of the lexer', () => {
     10 != 9;
     "foobar"
     "foo bar"
+    [1, 2];
     `
 
     const expected_results = [
@@ -110,6 +111,13 @@ test('get feedback about about the working state of the lexer', () => {
 
         [token_types.STRING, 'foobar'],
         [token_types.STRING, 'foo bar'],
+
+        [token_types.LBRACKET, '['],
+        [token_types.INT, '1'],
+        [token_types.COMMA, ','],
+        [token_types.INT, '2'],
+        [token_types.RBRACKET, ']'],
+        [token_types.SEMICOLON, ';'],
         [token_types.EOF, '']
     ]
 

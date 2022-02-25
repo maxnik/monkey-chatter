@@ -264,6 +264,24 @@ class CallExpression {
 	}
 }
 
+class ArrayLiteral {
+	elements = null
+
+	constructor(token, elements) {
+		this.token = token
+	}
+
+	token_literal() {
+		return this.token.literal
+	}
+
+	toString() {
+		const elems = this.elements.map(e => e.toString()).join(', ')
+
+		return `[${elems}]`
+	}
+}
+
 module.exports = {
 	Program,
 	LetStatement,
@@ -278,5 +296,6 @@ module.exports = {
 	IfExpression,
 	BlockStatement,
 	FunctionLiteral,
-	CallExpression
+	CallExpression,
+	ArrayLiteral
 }

@@ -87,6 +87,12 @@ class Lexer {
             case '"':
                 token = new Token (token_types.STRING, this.read_string())
                 break
+            case '[':
+                token = new Token (token_types.LBRACKET, this.ch)
+                break
+            case ']':
+                token = new Token (token_types.RBRACKET, this.ch)
+                break
             case null:
                 token = new Token (token_types.EOF, '')
                 break

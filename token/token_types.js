@@ -38,5 +38,8 @@ module.exports = Object.freeze({
     ELSE: 'ELSE',
     RETURN: 'RETURN',
 
-    STRING: 'STRING'
+    STRING: 'STRING',
+
+    LBRACKET: '[',
+    RBRACKET: ']'
 })

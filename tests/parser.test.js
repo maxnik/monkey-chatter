@@ -2,7 +2,8 @@ const Lexer = require('../lexer')
 const { LetStatement, ReturnStatement, ExpressionStatement, 
 	Identifier, IntegerLiteral, BooleanLiteral,
 	PrefixExpression, InfixExpression, IfExpression,
-	FunctionLiteral, CallExpression, StringLiteral } = require('../ast/ast')
+	FunctionLiteral, CallExpression, StringLiteral,
+	ArrayLiteral } = require('../ast/ast')
 const Parser = require('../parser/parser')
 
 test('let statements', () => {
@@ -334,7 +335,31 @@ test('string literal expression', () => {
 	const literal = program.statements[0].expression
 	expect(literal).toBeInstanceOf(StringLiteral)
 	expect(literal.value).toBe('hello world')
-	
+})
+
+test('parsing empty array literals', () => {
+	const p = new Parser (new Lexer ('[]'))
+	const program = p.parse_program()
+
+	check_parser_errors(p)
+
+	const array = program.statements[0].expression
+	expect(array).toBeInstanceOf(ArrayLiteral)
+	expect(array.elements.length).toBe(0)
+})
+
+test('parsing array literals', () => {
+	const p = new Parser (new Lexer ('[1, 2 * 3, 4 + 5]'))
+	const program = p.parse_program()
+
+	check_parser_errors(p)
+
+	const array = program.statements[0].expression
+	expect(array).toBeInstanceOf(ArrayLiteral)
+	expect(array.elements.length).toBe(3)
+	test_integer_literal(array.elements[0], 1)
+	test_infix_expression(array.elements[1], 2, '*', 3)
+	test_infix_expression(array.elements[2], 4, '+', 5)
 })
 
 function check_parser_errors(parser) {
