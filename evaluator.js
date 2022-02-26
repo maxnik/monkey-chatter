@@ -2,10 +2,11 @@ const { Program, IntegerLiteral, BooleanLiteral,
 		PrefixExpression, InfixExpression, IfExpression,
 		BlockStatement, ExpressionStatement, ReturnStatement,
 		LetStatement, Identifier, FunctionLiteral,
-		CallExpression, StringLiteral } = require('./ast/ast')
+		CallExpression, StringLiteral, ArrayLiteral } = require('./ast/ast')
 const { types, IntegerObject, BooleanObject, NullObject,
 		ReturnValue, ErrorObject, Environment,
-		FunctionObject, StringObject, BuiltinObject } = require('./object')
+		FunctionObject, StringObject, BuiltinObject,
+		ArrayObject } = require('./object')
 
 const TRUE = new BooleanObject (true)
 const FALSE = new BooleanObject (false)
@@ -95,8 +96,18 @@ function evaluate(node, env) {
  		}
 
  		return apply_function(fn, args)
+
  	} else if (node instanceof StringLiteral) {
  		return new StringObject (node.value)
+
+ 	} else if (node instanceof ArrayLiteral) {
+ 		const elements = eval_expressions(node.elements, env)
+
+ 		if (elements.length === 1 && is_error(elements[0])) {
+ 			return elements[0]
+ 		}
+
+ 		return new ArrayObject (elements)
  	}
 }
 

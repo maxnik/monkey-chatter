@@ -2,7 +2,7 @@ const Lexer = require('../lexer')
 const Parser = require('../parser/parser')
 const { IntegerObject, BooleanObject, NullObject,
 		ErrorObject, Environment, FunctionObject,
-		StringObject } = require('../object')
+		StringObject, ArrayObject } = require('../object')
 const { evaluate } = require('../evaluator')
 
 test('eval integer expression', () => {
@@ -222,6 +222,16 @@ test('string concatenation', () => {
 
 	expect(evaluated).toBeInstanceOf(StringObject)
 	expect(evaluated.value).toBe('Hello World!')	
+})
+
+test('array literals', () => {
+	const evaluated = test_eval('[1, 2 * 3, 4 + 5]')
+
+	expect(evaluated).toBeInstanceOf(ArrayObject)
+	expect(evaluated.elements.length).toBe(3)
+	test_integer_object(evaluated.elements[0], 1)
+	test_integer_object(evaluated.elements[1], 6)
+	test_integer_object(evaluated.elements[2], 9)
 })
 
 function test_eval(input) {

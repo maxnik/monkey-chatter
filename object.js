@@ -1,12 +1,13 @@
 const types = Object.freeze({
-	NULL_OBJ: 'NULL',
-	INTEGER_OBJ: 'INTEGER',
-	BOOLEAN_OBJ: 'BOOLEAN',
+	NULL_OBJ:     'NULL',
+	INTEGER_OBJ:  'INTEGER',
+	BOOLEAN_OBJ:  'BOOLEAN',
 	RETURN_VALUE_OBJ: 'RETURN_VALUE',
-	ERROR_OBJ: 'ERROR',
+	ERROR_OBJ:    'ERROR',
 	FUNCTION_OBJ: 'FUNCTION',
-	STRING_OBJ: 'STRING',
-	BUILTIN_OBJ: 'BUILTIN'
+	STRING_OBJ:   'STRING',
+	BUILTIN_OBJ:  'BUILTIN',
+	ARRAY_OBJ:    'ARRAY'
 })
 
 class NullObject {
@@ -128,7 +129,7 @@ class StringObject {
 	}
 
 	inspect() {
-		return this.value
+		return `"${this.value}"`
 	}
 }
 
@@ -146,6 +147,22 @@ class BuiltinObject {
 	}
 }
 
+class ArrayObject {
+	constructor(elements) {
+		this.elements = elements
+	}
+
+	get type() {
+		return types.ARRAY_OBJ
+	}
+
+	inspect() {
+		const elems = this.elements.map( e => e.inspect() ).join(', ')
+
+		return `[${elems}]`
+	}
+}
+
 module.exports = {
 	types,
 	NullObject,
@@ -156,5 +173,6 @@ module.exports = {
 	Environment,
 	FunctionObject,
 	StringObject,
-	BuiltinObject
+	BuiltinObject,
+	ArrayObject
 }
