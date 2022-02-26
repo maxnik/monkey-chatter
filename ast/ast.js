@@ -282,6 +282,23 @@ class ArrayLiteral {
 	}
 }
 
+class IndexExpression {
+	index = null
+
+	constructor(token, left) {
+		this.token = token
+		this.left = left
+	}
+
+	token_literal() {
+		return this.token.literal
+	}
+
+	toString() {
+		return `(${this.left.toString()}[${this.index.toString()}])`
+	}
+}
+
 module.exports = {
 	Program,
 	LetStatement,
@@ -297,5 +314,6 @@ module.exports = {
 	BlockStatement,
 	FunctionLiteral,
 	CallExpression,
-	ArrayLiteral
+	ArrayLiteral,
+	IndexExpression
 }

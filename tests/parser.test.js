@@ -3,7 +3,7 @@ const { LetStatement, ReturnStatement, ExpressionStatement,
 	Identifier, IntegerLiteral, BooleanLiteral,
 	PrefixExpression, InfixExpression, IfExpression,
 	FunctionLiteral, CallExpression, StringLiteral,
-	ArrayLiteral } = require('../ast/ast')
+	ArrayLiteral, IndexExpression } = require('../ast/ast')
 const Parser = require('../parser/parser')
 
 test('let statements', () => {
@@ -162,7 +162,9 @@ test('operator precedence parsing', () => {
 	['!(true == true)',            '(!(true == true))'],
 	['a + add(b * c) + d',         '((a + add((b * c))) + d)'],
 	['add(a + b + c * d / f + g)', 'add((((a + b) + ((c * d) / f)) + g))'],
-	['add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))', 'add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))']]
+	['add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))', 'add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))'],
+	['a * [1, 2, 3, 4][b * c] * d',               '((a * ([1, 2, 3, 4][(b * c)])) * d)'],
+	['add(a * b[2], b[1], 2 * [1, 2][1])',        'add((a * (b[2])), (b[1]), (2 * ([1, 2][1])))']]
 
 	for (const [input, expected] of test_cases) {
 		const p = new Parser (new Lexer (input))
@@ -360,6 +362,18 @@ test('parsing array literals', () => {
 	test_integer_literal(array.elements[0], 1)
 	test_infix_expression(array.elements[1], 2, '*', 3)
 	test_infix_expression(array.elements[2], 4, '+', 5)
+})
+
+test('index expressions', () => {
+	const p = new Parser (new Lexer ('myArray[1 + 2]'))
+	const program = p.parse_program()
+
+	check_parser_errors(p)
+
+	const index_exp = program.statements[0].expression
+	expect(index_exp).toBeInstanceOf(IndexExpression)
+	test_identifier(index_exp.left, 'myArray')
+	test_infix_expression(index_exp.index, 1, '+', 2)
 })
 
 function check_parser_errors(parser) {

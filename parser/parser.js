@@ -2,7 +2,8 @@ const { Program, LetStatement, Identifier,
 	ReturnStatement, ExpressionStatement, IntegerLiteral,
 	BooleanLiteral, PrefixExpression, InfixExpression,
 	IfExpression, BlockStatement, FunctionLiteral,
-	CallExpression, StringLiteral, ArrayLiteral } = require('../ast/ast')
+	CallExpression, StringLiteral, ArrayLiteral,
+	IndexExpression } = require('../ast/ast')
 const token_types = require('../token/token_types')
 
 const precedences = Object.freeze({
@@ -12,7 +13,8 @@ const precedences = Object.freeze({
 	SUM: 4,         // +
 	PRODUCT: 5,     // *
 	PREFIX: 6,      // -X or !X
-	CALL: 7         // myFunction(X)
+	CALL: 7,        // myFunction(X)
+	INDEX: 8       	// array[index]
 })
 
 const token_p = {}
@@ -26,6 +28,7 @@ token_p[token_types.MINUS] = precedences.SUM
 token_p[token_types.SLASH] = precedences.PRODUCT
 token_p[token_types.ASTERISK] = precedences.PRODUCT
 token_p[token_types.LPAREN] = precedences.CALL
+token_p[token_types.LBRACKET] = precedences.INDEX
 const token_precedences = Object.freeze(token_p)
 
 class Parser {
@@ -61,6 +64,7 @@ class Parser {
 		this.infix_parse_fns[token_types.LT] = parse_infix_expression
 		this.infix_parse_fns[token_types.GT] = parse_infix_expression
 		this.infix_parse_fns[token_types.LPAREN] = parse_call_expression
+		this.infix_parse_fns[token_types.LBRACKET] = parse_index_expression
 	}
 
 	next_token() {
@@ -391,6 +395,19 @@ function parse_array_literal(parser) {
 	array.elements = parser.parse_expression_list(token_types.RBRACKET)
 
 	return array
+}
+
+function parse_index_expression(parser, left) {
+	const exp = new IndexExpression (parser.cur_token, left)
+
+	parser.next_token()
+	exp.index = parser.parse_expression(precedences.LOWEST)
+
+	if (! parser.expect_peek(token_types.RBRACKET)) {
+		return null
+	}
+
+	return exp
 }
 
 module.exports = Parser
