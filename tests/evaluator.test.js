@@ -183,6 +183,27 @@ test.each([
 })
 
 test.each([
+['[1, 2, 3][0]',       1],
+['[1, 2, 3][1]',       2],
+['[1, 2, 3][2]',       3],
+['let i = 0; [1][i];', 1],
+['[1, 2, 3][1 + 1];',  3],
+['let myArray = [1, 2, 3]; myArray[2];', 3],
+['let myArray = [1, 2, 3]; myArray[0] + myArray[1] + myArray[2];', 6],
+['let myArray = [1, 2, 3]; let i = myArray[0]; myArray[i]',        2],
+['[1, 2, 3][3]',       null],
+['[1, 2, 3][-1]',      null]])(
+	'array index expression %s', (input, expected) => {
+	const evaluated = test_eval(input)
+
+	if (typeof(expected) === 'number') {
+		test_integer_object(evaluated, expected)
+	} else {
+		expect(evaluated).toBeInstanceOf(NullObject)
+	}	
+})
+
+test.each([
 ['len("")',            0],
 ['len("four")',        4],
 ['len("hello world")', 11],

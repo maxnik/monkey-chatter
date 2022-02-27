@@ -2,7 +2,8 @@ const { Program, IntegerLiteral, BooleanLiteral,
 		PrefixExpression, InfixExpression, IfExpression,
 		BlockStatement, ExpressionStatement, ReturnStatement,
 		LetStatement, Identifier, FunctionLiteral,
-		CallExpression, StringLiteral, ArrayLiteral } = require('./ast/ast')
+		CallExpression, StringLiteral, ArrayLiteral,
+		IndexExpression } = require('./ast/ast')
 const { types, IntegerObject, BooleanObject, NullObject,
 		ReturnValue, ErrorObject, Environment,
 		FunctionObject, StringObject, BuiltinObject,
@@ -108,6 +109,19 @@ function evaluate(node, env) {
  		}
 
  		return new ArrayObject (elements)
+
+ 	} else if (node instanceof IndexExpression) {
+ 		const left = evaluate(node.left, env)
+ 		if (is_error(left)) {
+ 			return left
+ 		}
+
+ 		const index = evaluate(node.index, env)
+ 		if (is_error(index)) {
+ 			return index
+ 		}
+
+ 		return eval_index_expression(left, index)
  	}
 }
 
@@ -296,6 +310,24 @@ function extend_function_env(fn, args) {
 	}
 
 	return env
+}
+
+function eval_index_expression(left, index) {
+	if (left.type === types.ARRAY_OBJ && index.type === types.INTEGER_OBJ) {
+		return eval_array_index_expression(left, index)
+	} else {
+		return new ErrorObject (`index operator not supported: ${left.type}`)
+	}
+}
+
+function eval_array_index_expression(array, index) {
+	const max = array.elements.length - 1
+
+	if (index.value < 0 || index.value > max) {
+		return NULL
+	}
+
+	return array.elements[index.value]
 }
 
 function is_truthy(obj) {
