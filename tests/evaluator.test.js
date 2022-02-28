@@ -208,16 +208,37 @@ test.each([
 ['len("four")',        4],
 ['len("hello world")', 11],
 ['len(1)',             'argument to \'len\' not supported, got INTEGER'],
-['len("one", "two")',  'wrong number of arguments. got=2, want=1']])(
+['len("one", "two")',  'wrong number of arguments. got=2, want=1'],
+['len([1, 2, 3])',     3],
+['len([])',            0],
+['first([1, 2, 3])',   1],
+['first([])',          null],
+['first(1)',           'argument to \'first\' must be ARRAY, got INTEGER'],
+['last([1, 2, 3])',    3],
+['last([])',           null],
+['last(1)',            'argument to \'last\' must be ARRAY, got INTEGER']])(
 	'built-in function %s', (input, expected) => {
 	const evaluated = test_eval(input)
 
 	if (typeof expected === 'string') {
 		expect(evaluated).toBeInstanceOf(ErrorObject)
 		expect(evaluated.message).toBe(expected)
+
 	} else {
-		test_integer_object(evaluated, expected)
-	}
+		if (evaluated instanceof ErrorObject) {
+			throw new Error (evaluated.message)
+		}
+
+		if (typeof expected === 'number') {		
+			test_integer_object(evaluated, expected)
+
+		} else if (Array.isArray(expected)) {
+			expect(evaluated).toBe(expected)
+
+		} else {
+			expect(evaluated).toBeInstanceOf(NullObject)
+		}
+	}	
 })
 
 test('closures', () => {

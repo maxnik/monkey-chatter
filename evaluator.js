@@ -22,9 +22,38 @@ const builtins = {
 		const arg = args[0]
 		if (arg instanceof StringObject) {
 			return new IntegerObject (arg.value.length)
+		} else if (arg instanceof ArrayObject) {
+			return new IntegerObject (arg.elements.length)
 		} else {
 			return new ErrorObject (`argument to 'len' not supported, got ${arg.type}`)
 		}
+	}),
+	'first': new BuiltinObject ((args) => {
+		if (args.length !== 1) {
+			return new ErrorObject(`wrong number of arguments. got=${args.length}, want=1`)
+		}
+		if (args[0].type !== types.ARRAY_OBJ) {
+			return new ErrorObject(`argument to 'first' must be ARRAY, got ${args[0].type}`)
+		}
+		if (args[0].elements.length > 0) {
+			return args[0].elements[0]
+		}
+
+		return NULL
+	}),
+	'last': new BuiltinObject ((args) => {
+		if (args.length !== 1) {
+			return new ErrorObject(`wrong number of arguments. got=${args.length}, want=1`)
+		}
+		if (args[0].type !== types.ARRAY_OBJ) {
+			return new ErrorObject(`argument to 'last' must be ARRAY, got ${args[0].type}`)
+		}
+		const length = args[0].elements.length
+		if (length > 0) {
+			return args[0].elements[length - 1]
+		}
+
+		return NULL
 	})
 }
 
