@@ -216,7 +216,11 @@ test.each([
 ['first(1)',           'argument to \'first\' must be ARRAY, got INTEGER'],
 ['last([1, 2, 3])',    3],
 ['last([])',           null],
-['last(1)',            'argument to \'last\' must be ARRAY, got INTEGER']])(
+['last(1)',            'argument to \'last\' must be ARRAY, got INTEGER'],
+['rest([1, 2, 3])',    [2, 3]],
+['rest([])',           null],
+['push([], 1)',        [1]],
+['push(1, 1)',         'argument to \'push\' must be ARRAY, got INTEGER']])(
 	'built-in function %s', (input, expected) => {
 	const evaluated = test_eval(input)
 
@@ -233,8 +237,12 @@ test.each([
 			test_integer_object(evaluated, expected)
 
 		} else if (Array.isArray(expected)) {
-			expect(evaluated).toBe(expected)
-
+			const elements = evaluated.elements
+			expect(elements.length).toBe(expected.length)
+			for (const [i, expected_elem] of expected.entries()) {
+				test_integer_object(elements[i], expected_elem)
+			}
+			
 		} else {
 			expect(evaluated).toBeInstanceOf(NullObject)
 		}

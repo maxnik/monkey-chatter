@@ -54,6 +54,32 @@ const builtins = {
 		}
 
 		return NULL
+	}),
+	'rest': new BuiltinObject ((args) => {
+		if (args.length !== 1) {
+			return new ErrorObject(`wrong number of arguments. got=${args.length}, want=1`)
+		}
+		if (args[0].type !== types.ARRAY_OBJ) {
+			return new ErrorObject(`argument to 'rest' must be ARRAY, got ${args[0].type}`)
+		}
+		const elements = args[0].elements
+		if (elements.length > 0) {
+			return new ArrayObject ( [...elements.slice(1)] )
+		}
+
+		return NULL
+	}),
+	'push': new BuiltinObject ((args) => {
+		if (args.length !== 2) {
+			return new ErrorObject(`wrong number of arguments. got=${args.length}, want=2`)
+		}
+		if (args[0].type !== types.ARRAY_OBJ) {
+			return new ErrorObject(`argument to 'push' must be ARRAY, got ${args[0].type}`)
+		}
+		
+		const array = args[0].elements
+		const new_element = args[1]
+		return new ArrayObject (array.concat(new_element))
 	})
 }
 
