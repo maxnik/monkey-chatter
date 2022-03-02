@@ -299,6 +299,24 @@ class IndexExpression {
 	}
 }
 
+class HashLiteral {
+	constructor(token) {
+		this.token = token
+		this.pairs = new Map ()
+	}
+
+	token_literal() {
+		return this.token.literal
+	}
+
+	toString() {
+		const pairs = Array.from(this.pairs, ([key, value]) => {
+			return `${key.toString()}:${value.toString()}`
+		}).join(', ')
+		return `{${pairs}}`
+	}
+}
+
 module.exports = {
 	Program,
 	LetStatement,
@@ -315,5 +333,6 @@ module.exports = {
 	FunctionLiteral,
 	CallExpression,
 	ArrayLiteral,
-	IndexExpression
+	IndexExpression,
+	HashLiteral
 }

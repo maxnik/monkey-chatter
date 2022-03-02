@@ -3,7 +3,7 @@ const { LetStatement, ReturnStatement, ExpressionStatement,
 	Identifier, IntegerLiteral, BooleanLiteral,
 	PrefixExpression, InfixExpression, IfExpression,
 	FunctionLiteral, CallExpression, StringLiteral,
-	ArrayLiteral, IndexExpression } = require('../ast/ast')
+	ArrayLiteral, IndexExpression, HashLiteral } = require('../ast/ast')
 const Parser = require('../parser/parser')
 
 test('let statements', () => {
@@ -374,6 +374,59 @@ test('index expressions', () => {
 	expect(index_exp).toBeInstanceOf(IndexExpression)
 	test_identifier(index_exp.left, 'myArray')
 	test_infix_expression(index_exp.index, 1, '+', 2)
+})
+
+test('hash literals string keys', () => {
+	const p = new Parser (new Lexer ('{"one": 1, "two": 2, "three": 3}'))
+	const program = p.parse_program()
+
+	check_parser_errors(p)
+
+	const hash = program.statements[0].expression
+	expect(hash).toBeInstanceOf(HashLiteral)
+	expect(hash.pairs.size).toBe(3)
+
+	const expected = {'one': 1, 'two': 2, 'three': 3}
+
+	for (const [key, value] of hash.pairs) {
+		expect(key).toBeInstanceOf(StringLiteral)
+
+		const expected_value = expected[key.toString()]
+
+		test_integer_literal(value, expected_value)
+	}
+})
+
+test('empty hash literal', () => {
+	const p = new Parser (new Lexer ('{}'))
+	const program = p.parse_program()
+
+	check_parser_errors(p)
+
+	const hash = program.statements[0].expression
+	expect(hash).toBeInstanceOf(HashLiteral)
+	expect(hash.pairs.size).toBe(0)
+})
+
+test('hash literal with expressions', () => {
+	const input = '{"one": 0 + 1, "two": 10 - 8, "three": 15 / 5}'
+	const p = new Parser (new Lexer (input))
+	const program = p.parse_program()
+
+	check_parser_errors(p)
+
+	const hash = program.statements[0].expression
+	expect(hash).toBeInstanceOf(HashLiteral)
+	expect(hash.pairs.size).toBe(3)	
+
+	const expected = {'one': [0, '+', 1], 'two': [10, '-', 8], 'three': [15, '/', 5]}
+
+	for (const [key, value] of hash.pairs) {
+		expect(key).toBeInstanceOf(StringLiteral)
+
+		const [x, y, z] = expected[key.toString()]
+		test_infix_expression(value, x, y, z)
+	}
 })
 
 function check_parser_errors(parser) {

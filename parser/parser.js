@@ -3,7 +3,7 @@ const { Program, LetStatement, Identifier,
 	BooleanLiteral, PrefixExpression, InfixExpression,
 	IfExpression, BlockStatement, FunctionLiteral,
 	CallExpression, StringLiteral, ArrayLiteral,
-	IndexExpression } = require('../ast/ast')
+	IndexExpression, HashLiteral } = require('../ast/ast')
 const token_types = require('../token/token_types')
 
 const precedences = Object.freeze({
@@ -54,6 +54,7 @@ class Parser {
 		this.prefix_parse_fns[token_types.FUNCTION] = parse_function_literal
 		this.prefix_parse_fns[token_types.STRING] = parse_string_literal
 		this.prefix_parse_fns[token_types.LBRACKET] = parse_array_literal
+		this.prefix_parse_fns[token_types.LBRACE] = parse_hash_literal
 
 		this.infix_parse_fns[token_types.PLUS] = parse_infix_expression
 		this.infix_parse_fns[token_types.MINUS] = parse_infix_expression
@@ -408,6 +409,34 @@ function parse_index_expression(parser, left) {
 	}
 
 	return exp
+}
+
+function parse_hash_literal(parser) {
+	const hash = new HashLiteral (parser.cur_token)
+
+	while (parser.peek_token.type !== token_types.RBRACE) {
+		parser.next_token()
+		const key = parser.parse_expression(precedences.LOWEST) 
+
+		if (! parser.expect_peek(token_types.COLON)) {
+			return null
+		}
+
+		parser.next_token()
+		const value = parser.parse_expression(precedences.LOWEST)
+
+		hash.pairs.set(key, value)
+
+		if (parser.peek_token.type !== token_types.RBRACE && ! parser.expect_peek(token_types.COMMA)) {
+			return null
+		}
+	}
+
+	if (! parser.expect_peek(token_types.RBRACE)) {
+		return null
+	}
+
+	return hash
 }
 
 module.exports = Parser

@@ -93,6 +93,9 @@ class Lexer {
             case ']':
                 token = new Token (token_types.RBRACKET, this.ch)
                 break
+            case ':':
+                token = new Token (token_types.COLON, this.ch)
+                break 
             case null:
                 token = new Token (token_types.EOF, '')
                 break

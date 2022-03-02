@@ -7,7 +7,8 @@ const types = Object.freeze({
 	FUNCTION_OBJ: 'FUNCTION',
 	STRING_OBJ:   'STRING',
 	BUILTIN_OBJ:  'BUILTIN',
-	ARRAY_OBJ:    'ARRAY'
+	ARRAY_OBJ:    'ARRAY',
+	HASH_OBJ:     'HASH'
 })
 
 class NullObject {
@@ -131,6 +132,10 @@ class StringObject {
 	inspect() {
 		return `"${this.value}"`
 	}
+
+	toString() {
+		return this.value
+	}
 }
 
 class BuiltinObject {
@@ -163,6 +168,39 @@ class ArrayObject {
 	}
 }
 
+class HashPair {
+	constructor(key, value) {
+		this.key = key
+		this.value = value
+	}
+}
+
+class HashObject {
+	constructor() {
+		this.pairs = new Map ()
+	}
+
+	get type() {
+		return types.HASH_OBJ
+	}
+
+	set(key, value) {
+		return this.pairs.set(key.toString(), new HashPair (key, value))
+	}
+
+	get(key) {
+		return this.pairs.get(key.toString())
+	}
+
+	inspect() {
+		const pairs = Array.from(this.pairs, ([key, hash_pair]) => {
+			return `${hash_pair.key.inspect()}:${hash_pair.value.inspect()}`
+		}).join(', ')
+
+		return `{${pairs}}`
+	}
+}
+
 module.exports = {
 	types,
 	NullObject,
@@ -174,5 +212,6 @@ module.exports = {
 	FunctionObject,
 	StringObject,
 	BuiltinObject,
-	ArrayObject
+	ArrayObject,
+	HashObject
 }

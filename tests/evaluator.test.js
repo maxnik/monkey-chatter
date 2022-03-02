@@ -2,7 +2,7 @@ const Lexer = require('../lexer')
 const Parser = require('../parser/parser')
 const { IntegerObject, BooleanObject, NullObject,
 		ErrorObject, Environment, FunctionObject,
-		StringObject, ArrayObject } = require('../object')
+		StringObject, ArrayObject, HashObject } = require('../object')
 const { evaluate } = require('../evaluator')
 
 test('eval integer expression', () => {
@@ -125,20 +125,21 @@ test('return statements', () => {
 
 test('error handling', () => {
 	const cases = [
-		['5 + true;',                     'type mismatch: INTEGER + BOOLEAN'],
-		['5 + true; 6',                   'type mismatch: INTEGER + BOOLEAN'],
-		['-true',                         'unknown operator: -BOOLEAN'],
-		['true + false;',                 'unknown operator: BOOLEAN + BOOLEAN'],
-		['5; true + false; 6',            'unknown operator: BOOLEAN + BOOLEAN'],
-		['if (10 > 1) { true + false; }', 'unknown operator: BOOLEAN + BOOLEAN'],
+		['5 + true;',                       'type mismatch: INTEGER + BOOLEAN'],
+		['5 + true; 6',                     'type mismatch: INTEGER + BOOLEAN'],
+		['-true',                           'unknown operator: -BOOLEAN'],
+		['true + false;',                   'unknown operator: BOOLEAN + BOOLEAN'],
+		['5; true + false; 6',              'unknown operator: BOOLEAN + BOOLEAN'],
+		['if (10 > 1) { true + false; }',   'unknown operator: BOOLEAN + BOOLEAN'],
 		[`if (10 > 1) {
 			if (10 > 1) {
 				return true + false;
 			}
 			return 1;
-		 }`,                               'unknown operator: BOOLEAN + BOOLEAN'],
-		['foobar',                         'identifier not found: foobar'],
-		['"Hello" - "World"',              'unknown operator: STRING - STRING']]
+		 }`,                                 'unknown operator: BOOLEAN + BOOLEAN'],
+		['foobar',                           'identifier not found: foobar'],
+		['"Hello" - "World"',                'unknown operator: STRING - STRING'],
+		['{"name": "Monkey"}[fn(x) { x }];', 'unusable as hash key: FUNCTION']]
 
 	for (const [input, expected_message] of cases) {
 		const evaluated = test_eval(input)
@@ -242,7 +243,7 @@ test.each([
 			for (const [i, expected_elem] of expected.entries()) {
 				test_integer_object(elements[i], expected_elem)
 			}
-			
+
 		} else {
 			expect(evaluated).toBeInstanceOf(NullObject)
 		}
@@ -284,12 +285,55 @@ test('array literals', () => {
 	test_integer_object(evaluated.elements[2], 9)
 })
 
+test('hash literals', () => {
+	const input = `let two = "two";
+	{
+		"one": 10 - 9,
+		two: 1 + 1,
+		"thr" + "ee": 6 / 2
+	}`
+	const evaluated = test_eval_without_error(input)
+
+	expect(evaluated).toBeInstanceOf(HashObject)
+	expect(evaluated.pairs.size).toBe(3)
+
+	const expected = {'one': 1, 'two': 2, 'three': 3}
+	for (const [key, pair] of evaluated.pairs) {
+		test_integer_object(pair.value, expected[key])
+	}
+})
+
+test.each([
+	['{"foo": 5}["foo"]',                5],
+	['{"foo": 5}["bar"]',                null],
+	['let key = "foo"; {"foo": 5}[key]', 5],
+	['{}["foo"]',                        null]
+])('hash index expression %s', (input, expected) => {
+	const evaluated = test_eval_without_error(input)
+
+	if (typeof expected === 'number') {
+		test_integer_object(evaluated, expected)
+	} else {
+		expect(evaluated).toBeInstanceOf(NullObject)	
+	}
+})
+
 function test_eval(input) {
 	const p = new Parser (new Lexer (input))
 	const program = p.parse_program()
 	const env = new Environment ()
 
 	return evaluate(program, env)
+}
+
+function test_eval_without_error(input) {
+	const evaluated = test_eval(input)
+
+	if (evaluated instanceof ErrorObject) {
+		throw new Error (evaluated.message)
+	}
+
+	return evaluated
 }
 
 function test_integer_object(obj, expected) {

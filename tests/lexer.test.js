@@ -24,6 +24,7 @@ test('get feedback about about the working state of the lexer', () => {
     "foobar"
     "foo bar"
     [1, 2];
+    {"foo": "bar"}
     `
 
     const expected_results = [
@@ -118,6 +119,12 @@ test('get feedback about about the working state of the lexer', () => {
         [token_types.INT, '2'],
         [token_types.RBRACKET, ']'],
         [token_types.SEMICOLON, ';'],
+
+        [token_types.LBRACE, '{'],
+        [token_types.STRING, 'foo'],
+        [token_types.COLON, ':'],
+        [token_types.STRING, 'bar'],
+        [token_types.RBRACE, '}'],
         [token_types.EOF, '']
     ]
 

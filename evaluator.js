@@ -3,11 +3,11 @@ const { Program, IntegerLiteral, BooleanLiteral,
 		BlockStatement, ExpressionStatement, ReturnStatement,
 		LetStatement, Identifier, FunctionLiteral,
 		CallExpression, StringLiteral, ArrayLiteral,
-		IndexExpression } = require('./ast/ast')
+		IndexExpression, HashLiteral } = require('./ast/ast')
 const { types, IntegerObject, BooleanObject, NullObject,
 		ReturnValue, ErrorObject, Environment,
 		FunctionObject, StringObject, BuiltinObject,
-		ArrayObject } = require('./object')
+		ArrayObject, HashObject } = require('./object')
 
 const TRUE = new BooleanObject (true)
 const FALSE = new BooleanObject (false)
@@ -177,6 +177,9 @@ function evaluate(node, env) {
  		}
 
  		return eval_index_expression(left, index)
+
+ 	} else if (node instanceof HashLiteral) {
+ 		return eval_hash_literal(node, env)
  	}
 }
 
@@ -370,6 +373,10 @@ function extend_function_env(fn, args) {
 function eval_index_expression(left, index) {
 	if (left.type === types.ARRAY_OBJ && index.type === types.INTEGER_OBJ) {
 		return eval_array_index_expression(left, index)
+
+	} else if (left.type === types.HASH_OBJ) {
+		return eval_hash_index_expression(left, index)
+
 	} else {
 		return new ErrorObject (`index operator not supported: ${left.type}`)
 	}
@@ -383,6 +390,43 @@ function eval_array_index_expression(array, index) {
 	}
 
 	return array.elements[index.value]
+}
+
+function eval_hash_index_expression(hash, index) {
+	if (! (index instanceof StringObject)) {
+		return new ErrorObject (`unusable as hash key: ${index.type}`)
+	}
+
+	const pair = hash.get(index)
+	if (! pair) {
+		return NULL
+	}
+
+	return pair.value
+}
+
+function eval_hash_literal(node, env) {
+	const hash = new HashObject ()
+
+	for (const [key_node, value_node] of node.pairs) {
+		const key = evaluate(key_node, env)
+		if (is_error(key)) {
+			return key
+		}
+
+		if (! (key instanceof StringObject)) {
+			return new ErrorObject (`unusable as hash key: ${key.type}`)
+		}
+
+		const value = evaluate(value_node, env)
+		if (is_error(value)) {
+			return value
+		}
+
+		hash.set(key, value)
+	}
+
+	return hash
 }
 
 function is_truthy(obj) {
