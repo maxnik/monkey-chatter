@@ -80,6 +80,13 @@ const builtins = {
 		const array = args[0].elements
 		const new_element = args[1]
 		return new ArrayObject (array.concat(new_element))
+	}),
+	'puts': new BuiltinObject ((args) => {
+		for (const arg of args) {
+			console.log(arg.inspect())
+		}
+
+		return NULL
 	})
 }
 
