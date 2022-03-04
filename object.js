@@ -21,6 +21,8 @@ class NullObject {
 	}
 }
 
+const NULL  = new NullObject ()
+
 class IntegerObject {
 	constructor(value) {
 		this.value = value
@@ -204,6 +206,7 @@ class HashObject {
 module.exports = {
 	types,
 	NullObject,
+	NULL,
 	IntegerObject,
 	BooleanObject,
 	ReturnValue, 
